@@ -1,0 +1,114 @@
+name: Build release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-2022
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DOTNET_NOLOGO: 'true'
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Check source publication boundary
+        run: |
+          foreach ($name in @('completion-ui-recipe.json', 'display-ui-recipe.json')) {
+            if (Test-Path -LiteralPath "src/h5sololauncher.Core/Runtime/$name") {
+              throw "Release blocked: $name is local-only pending provenance review. See docs/publication.md."
+            }
+          }
+
+      - name: Configure native components
+        run: cmake -S src/h5sololauncher.ForgeReader -B artifacts/forge-reader-build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build native components
+        run: cmake --build artifacts/forge-reader-build --config Release --parallel 2
+
+      - name: Test native components
+        run: ctest --test-dir artifacts/forge-reader-build -C Release --output-on-failure
+
+      - name: Test launcher
+        run: dotnet test h5sololauncher.slnx -c Release
+
+      - name: Publish self-contained Windows x64 app
+        run: dotnet publish src/h5sololauncher -c Release -r win-x64 --self-contained true -o artifacts/release-app
+
+      - name: Package release
+        id: package
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $app = 'artifacts/release-app'
+          foreach ($file in @('h5sololauncher.exe', 'h5sololauncher.Worker.exe', 'coreclr.dll', 'README.txt', 'licenses/DirectXShaderCompiler.txt')) {
+            if (!(Test-Path -LiteralPath (Join-Path $app $file))) { throw "Missing release file: $file" }
+          }
+          $native = @(Get-ChildItem artifacts/forge-reader-build/Release -Filter 'h5sololauncher.*.dll')
+          if ($native.Count -ne 13) { throw 'Expected 13 native runtime DLLs.' }
+          foreach ($file in $native) {
+            $copy = Join-Path $app $file.Name
+            if ((Get-FileHash -LiteralPath $file.FullName).Hash -ne (Get-FileHash -LiteralPath $copy).Hash) {
+              throw "Native DLL mismatch: $($file.Name)"
+            }
+          }
+          $notice = @'
+          AUTOMATED PREVIEW - EXISTING-CACHE PLAYBACK
+          This build does not include the two local UI recipes needed to prepare
+          a new cache. Choose an existing complete compatible cache and click Play.
+          No game files are included. Read PUBLICATION.md for details.
+
+          '@
+          $readme = Join-Path $app 'README.txt'
+          $notice + [Environment]::NewLine + (Get-Content -LiteralPath $readme -Raw) | Set-Content -LiteralPath $readme -Encoding utf8
+          Copy-Item -LiteralPath docs/publication.md -Destination (Join-Path $app 'PUBLICATION.md')
+          $tag = "main-$env:GITHUB_RUN_NUMBER-$env:GITHUB_RUN_ATTEMPT"
+          $zip = "artifacts/h5sololauncher-$tag-win-x64.zip"
+          Compress-Archive -Path "$app/*" -DestinationPath $zip
+          $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $([IO.Path]::GetFileName($zip))" | Set-Content -LiteralPath "$zip.sha256" -Encoding ascii
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "zip=$zip" >> $env:GITHUB_OUTPUT
+
+      - name: Publish GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ steps.package.outputs.tag }}
+          RELEASE_ZIP: ${{ steps.package.outputs.zip }}
+        run: |
+          $notes = @"
+          Automated Windows x64 preview from commit $env:GITHUB_SHA.
+
+          Download the ZIP, extract the whole folder and run h5sololauncher.exe.
+          No Python or separate .NET installation is needed.
+
+          This build supports existing-cache playback. New-cache preparation is
+          unavailable because two local UI recipes are excluded pending provenance
+          review. Game files are not included. Forge and the Halo companion app
+          must be installed. See the included README.txt and PUBLICATION.md.
+
+          Native and managed tests passed. Gameplay is not tested by this workflow.
+          "@
+          $notes | Set-Content -LiteralPath artifacts/release-notes.md -Encoding utf8
+          gh release create $env:RELEASE_TAG $env:RELEASE_ZIP "$env:RELEASE_ZIP.sha256" --target $env:GITHUB_SHA --title "h5sololauncher $env:RELEASE_TAG" --notes-file artifacts/release-notes.md --prerelease --latest=false

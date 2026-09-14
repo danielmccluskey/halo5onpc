@@ -1,0 +1,12 @@
+[
+  {
+    "Id": "first-two-missions",
+    "Revision": 1,
+    "Title": "Osiris and Blue Team",
+    "Scenarios": [
+      "levels/campaignworld030/w3_halsey/w3_halsey",
+      "levels/cinematics/cin_030/cin_030",
+      "levels/campaignworld040/w4_station/w4_station"
+    ]
+  }
+]

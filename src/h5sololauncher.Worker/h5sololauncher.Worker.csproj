@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>h5sololauncher.Worker</AssemblyName>
+    <Version>0.9.0</Version>
+    <ForgeReaderPath Condition="'$(ForgeReaderPath)' == ''">$(MSBuildThisFileDirectory)../../artifacts/forge-reader-build/Release/h5sololauncher.ForgeReader.dll</ForgeReaderPath>
+    <HubBridgePath Condition="'$(HubBridgePath)' == ''">$(MSBuildThisFileDirectory)../../artifacts/forge-reader-build/Release/h5sololauncher.HubBridge.dll</HubBridgePath>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../h5sololauncher.Core/h5sololauncher.Core.csproj" /></ItemGroup>
+  <ItemGroup><Content Include="$(ForgeReaderPath)" Link="h5sololauncher.ForgeReader.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><Content Include="$(HubBridgePath)" Link="h5sololauncher.HubBridge.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup>
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignDisplay.dll" Link="h5sololauncher.CampaignDisplay.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.ForgePresentation.dll" Link="h5sololauncher.ForgePresentation.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignControls.dll" Link="h5sololauncher.CampaignControls.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignCompletion.dll" Link="h5sololauncher.CampaignCompletion.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignMovie.dll" Link="h5sololauncher.CampaignMovie.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.ShaderTools.dll" Link="h5sololauncher.ShaderTools.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.TitleAutomation.dll" Link="h5sololauncher.TitleAutomation.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignRegistry.dll" Link="h5sololauncher.CampaignRegistry.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignRenderer.dll" Link="h5sololauncher.CampaignRenderer.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignUi.dll" Link="h5sololauncher.CampaignUi.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignAudio.dll" Link="h5sololauncher.CampaignAudio.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../h5sololauncher.ForgeReader/third_party/dxilhash/LICENSE.TXT" Link="licenses/DirectXShaderCompiler.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="RequireForgeReader" BeforeTargets="PrepareForBuild">
+    <Error Condition="!Exists('$(ForgeReaderPath)')" Text="Build the native Forge reader with CMake first. See docs/forge-preparation.md, or set ForgeReaderPath to its x64 DLL." />
+    <Error Condition="!Exists('$(HubBridgePath)')" Text="Build the native Halo startup bridge with CMake first. See docs/forge-startup.md, or set HubBridgePath to its x64 DLL." />
+  </Target>
+</Project>

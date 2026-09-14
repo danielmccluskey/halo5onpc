@@ -1,0 +1,40 @@
+<halo:HaloWindow xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:halo="clr-namespace:HaloWPFPipeline.HaloWPFBlend.Controls;assembly=HaloWPFPipeline.HaloWPFBlend.Controls"
+ xmlns:haloE="clr-namespace:HaloWPFPipeline.HaloWPFBlend.Effects;assembly=HaloWPFPipeline.HaloWPFBlend.Controls"
+ x:Class="AnubisUI.matchstats_campaign_ingame_screen" x:Name="Window"
+ Width="1936" Height="1119" Title="Campaign completion" Background="{x:Null}">
+ <Window.Resources>
+  <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+  <halo:BooleanToVisibilityNegateConverter x:Key="BooleanToVisibilityNegateConverter"/>
+ </Window.Resources>
+ <halo:HaloCanvas x:Name="LayoutRoot">
+  <halo:HaloImage Width="1920" Height="1080" Stretch="Fill" Source="tagimage://Gx66408ffc">
+   <halo:HaloImage.Effect><haloE:TintEffect Tint="#FF393939"/></halo:HaloImage.Effect>
+  </halo:HaloImage>
+  <Canvas.Triggers>
+   <halo:KeyDownTrigger RoutedEvent="Keyboard.KeyDown">
+    <halo:DoLuaAction LuaLine="OnXPush()" halo:HaloConditional.FilterKeys="A, B, X, Y, back"/>
+   </halo:KeyDownTrigger>
+  </Canvas.Triggers>
+  <StackPanel Canvas.Left="160" Canvas.Top="150" Width="1600">
+   <halo:HaloTextBlock Text="MISSION COMPLETE" Style="{DynamicResource Global_Qtype_Header4}" FontSize="60" Foreground="White"/>
+   <halo:HaloTextBlock Text="{{SYNTHETIC}}" Style="{DynamicResource Global_Qtype_Header4}" FontSize="26" Foreground="#FFD587" Margin="0,25,0,20"/>
+   <halo:HaloTextBlock Text="{{MODE}}  |  Difficulty: {{DIFFICULTY}}" Style="{DynamicResource Global_Qtype_Header4}" FontSize="30" Foreground="White"/>
+   <halo:HaloTextBlock Text="Mission time: {{TIME}}    Par time: {{PAR}}" Style="{DynamicResource Global_Qtype_Header4}" FontSize="30" Foreground="White" Margin="0,20,0,0"/>
+   <halo:HaloTextBlock Text="{{SKULLS}}" Style="{DynamicResource Global_Qtype_Header4}" FontSize="30" Foreground="White" Margin="0,20,0,0"/>
+   <halo:HaloTextBlock Text="{{SCORES}}" Style="{DynamicResource Global_Qtype_Header4}" FontSize="38" Foreground="White" Margin="0,30,0,30" TextWrapping="Wrap"/>
+   <halo:HaloTextBlock x:Name="ContinueButton" Text="CONTINUE" Style="{DynamicResource Global_Qtype_Header4}" Width="340" Height="64" FontSize="30" Foreground="White" HorizontalAlignment="Left" Margin="0,35,0,0" Visibility="{Binding CompletionPending, Converter={StaticResource BooleanToVisibilityNegateConverter}}">
+    <halo:HaloTextBlock.Triggers>
+     <EventTrigger RoutedEvent="FrameworkElement.MouseLeftButtonDown">
+      <halo:DoLuaAction LuaLine="OnXPush()"/>
+     </EventTrigger>
+    </halo:HaloTextBlock.Triggers>
+   </halo:HaloTextBlock>
+   <StackPanel x:Name="Pending" Visibility="{Binding CompletionPending, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,35,0,0">
+    <halo:HaloTextBlock Text="{{CONTINUETITLE}}" Style="{DynamicResource Global_Qtype_Header4}" FontSize="38" Foreground="White"/>
+    <halo:HaloTextBlock Text="{{CONTINUEMESSAGE}}" Style="{DynamicResource Global_Qtype_Header4}" FontSize="26" Foreground="#B6D8F2" TextWrapping="Wrap" Margin="0,15,0,0"/>
+   </StackPanel>
+  </StackPanel>
+ </halo:HaloCanvas>
+</halo:HaloWindow>

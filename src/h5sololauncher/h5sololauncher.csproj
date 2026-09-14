@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>h5sololauncher</AssemblyName>
+    <RootNamespace>H5SoloLauncher</RootNamespace>
+    <Version>0.9.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="QuickStart.txt" Link="README.txt" CopyToPublishDirectory="PreserveNewest" />
+    <ProjectReference Include="../h5sololauncher.Core/h5sololauncher.Core.csproj" />
+    <ProjectReference Include="../h5sololauncher.Worker/h5sololauncher.Worker.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <Target Name="CopyIndexWorker" AfterTargets="Build">
+    <ItemGroup>
+      <WorkerFiles Include="../h5sololauncher.Worker/bin/$(Configuration)/net10.0/$(RuntimeIdentifier)/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WorkerFiles)" DestinationFiles="@(WorkerFiles->'$(TargetDir)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="PublishIndexWorker" AfterTargets="Publish">
+    <MSBuild Projects="../h5sololauncher.Worker/h5sololauncher.Worker.csproj" Targets="Publish"
+             Properties="Configuration=$(Configuration);TargetFramework=net10.0;RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishDir=$([System.IO.Path]::GetFullPath('$(PublishDir)'))" />
+  </Target>
+</Project>

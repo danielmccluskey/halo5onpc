@@ -1,0 +1,1016 @@
+[
+  {
+    "Group": "mat ",
+    "RootGuid": "2b67f52e084463a95ea16f8e839b4cb2",
+    "SourceSchema": "62f06d8be05554a2",
+    "NativeSchema": "196a728b72e0a73d",
+    "Strides": [
+      {
+        "Guid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "Kind": 1,
+        "Size": 232
+      },
+      {
+        "Guid": "2b67f52e084463a95ea16f8e839b4cb2",
+        "Kind": 0,
+        "Size": 128
+      },
+      {
+        "Guid": "36821172914f2cb2afda45a6bba5e7ab",
+        "Kind": 1,
+        "Size": 8
+      },
+      {
+        "Guid": "6c763383c6491399871f34aef2fb867f",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "Kind": 1,
+        "Size": 8
+      },
+      {
+        "Guid": "c3d0501dc04152c857905b9ea3f398ce",
+        "Kind": 65537,
+        "Size": 200
+      },
+      {
+        "Guid": "e3f0715472444df516a555aded7b009a",
+        "Kind": 1,
+        "Size": 52
+      },
+      {
+        "Guid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "Kind": 1,
+        "Size": 56
+      }
+    ],
+    "Routes": [
+      {
+        "OwnerGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "OwnerKind": 1,
+        "Offset": 108,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "2b67f52e084463a95ea16f8e839b4cb2",
+        "OwnerKind": 0,
+        "Offset": 48,
+        "ChildGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "2b67f52e084463a95ea16f8e839b4cb2",
+        "OwnerKind": 0,
+        "Offset": 76,
+        "ChildGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "ChildKind": 65537
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 0,
+        "ChildGuid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 32,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 60,
+        "ChildGuid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 88,
+        "ChildGuid": "36821172914f2cb2afda45a6bba5e7ab",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 120,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 148,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      }
+    ]
+  },
+  {
+    "Group": "prt3",
+    "RootGuid": "7623d69e9d4a9e9f9d2be79d256de751",
+    "SourceSchema": "90444a3f583aa6d9",
+    "NativeSchema": "9b7107189c991c58",
+    "Strides": [
+      {
+        "Guid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "Kind": 1,
+        "Size": 232
+      },
+      {
+        "Guid": "6c763383c6491399871f34aef2fb867f",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "6fcc2078f4402802e75b229397bd8d81",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "729630dbfd4064392a93b18d361707d3",
+        "Kind": 1,
+        "Size": 40
+      },
+      {
+        "Guid": "7623d69e9d4a9e9f9d2be79d256de751",
+        "Kind": 0,
+        "Size": 600
+      },
+      {
+        "Guid": "909c1f82634884951d372594dde8b87a",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "Kind": 1,
+        "Size": 8
+      },
+      {
+        "Guid": "c3d0501dc04152c857905b9ea3f398ce",
+        "Kind": 65537,
+        "Size": 200
+      },
+      {
+        "Guid": "e3f0715472444df516a555aded7b009a",
+        "Kind": 1,
+        "Size": 52
+      },
+      {
+        "Guid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "Kind": 1,
+        "Size": 56
+      }
+    ],
+    "Routes": [
+      {
+        "OwnerGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "OwnerKind": 1,
+        "Offset": 108,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "7623d69e9d4a9e9f9d2be79d256de751",
+        "OwnerKind": 0,
+        "Offset": 20,
+        "ChildGuid": "729630dbfd4064392a93b18d361707d3",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "7623d69e9d4a9e9f9d2be79d256de751",
+        "OwnerKind": 0,
+        "Offset": 96,
+        "ChildGuid": "230d81130644153c599476aa073df0a7",
+        "ChildKind": 3
+      },
+      {
+        "OwnerGuid": "7623d69e9d4a9e9f9d2be79d256de751",
+        "OwnerKind": 0,
+        "Offset": 128,
+        "ChildGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "7623d69e9d4a9e9f9d2be79d256de751",
+        "OwnerKind": 0,
+        "Offset": 156,
+        "ChildGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "ChildKind": 65537
+      },
+      {
+        "OwnerGuid": "7623d69e9d4a9e9f9d2be79d256de751",
+        "OwnerKind": 0,
+        "Offset": 540,
+        "ChildGuid": "909c1f82634884951d372594dde8b87a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "7623d69e9d4a9e9f9d2be79d256de751",
+        "OwnerKind": 0,
+        "Offset": 568,
+        "ChildGuid": "6fcc2078f4402802e75b229397bd8d81",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 0,
+        "ChildGuid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 32,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 60,
+        "ChildGuid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 88,
+        "ChildGuid": "36821172914f2cb2afda45a6bba5e7ab",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 120,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 148,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      }
+    ]
+  },
+  {
+    "Group": "mdsv",
+    "RootGuid": "44636db4c1429a9eb07063a9f58c72a5",
+    "SourceSchema": "b122100d6716516c",
+    "NativeSchema": "4f52a9ede21a4575",
+    "Strides": [
+      {
+        "Guid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "Kind": 1,
+        "Size": 232
+      },
+      {
+        "Guid": "44636db4c1429a9eb07063a9f58c72a5",
+        "Kind": 0,
+        "Size": 408
+      },
+      {
+        "Guid": "6c763383c6491399871f34aef2fb867f",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "995fedf16846ff068ffc2e8ce3cef52e",
+        "Kind": 1,
+        "Size": 8
+      },
+      {
+        "Guid": "c3d0501dc04152c857905b9ea3f398ce",
+        "Kind": 65537,
+        "Size": 200
+      },
+      {
+        "Guid": "e3f0715472444df516a555aded7b009a",
+        "Kind": 1,
+        "Size": 52
+      },
+      {
+        "Guid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "Kind": 1,
+        "Size": 56
+      }
+    ],
+    "Routes": [
+      {
+        "OwnerGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "OwnerKind": 1,
+        "Offset": 108,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "44636db4c1429a9eb07063a9f58c72a5",
+        "OwnerKind": 0,
+        "Offset": 100,
+        "ChildGuid": "995fedf16846ff068ffc2e8ce3cef52e",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "44636db4c1429a9eb07063a9f58c72a5",
+        "OwnerKind": 0,
+        "Offset": 288,
+        "ChildGuid": "230d81130644153c599476aa073df0a7",
+        "ChildKind": 3
+      },
+      {
+        "OwnerGuid": "44636db4c1429a9eb07063a9f58c72a5",
+        "OwnerKind": 0,
+        "Offset": 320,
+        "ChildGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "44636db4c1429a9eb07063a9f58c72a5",
+        "OwnerKind": 0,
+        "Offset": 348,
+        "ChildGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "ChildKind": 65537
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 0,
+        "ChildGuid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 32,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 60,
+        "ChildGuid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 88,
+        "ChildGuid": "36821172914f2cb2afda45a6bba5e7ab",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 120,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 148,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      }
+    ]
+  },
+  {
+    "Group": "decs",
+    "RootGuid": "31b90b571c41b38cbe6f46b0e5eee47f",
+    "SourceSchema": "bef2dfe35e1fcbc4",
+    "NativeSchema": "47ce5ee4345e3ae1",
+    "Strides": [
+      {
+        "Guid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "Kind": 1,
+        "Size": 232
+      },
+      {
+        "Guid": "1baee505bf4fa433660df683b8fd15ac",
+        "Kind": 1,
+        "Size": 160
+      },
+      {
+        "Guid": "31b90b571c41b38cbe6f46b0e5eee47f",
+        "Kind": 65536,
+        "Size": 88
+      },
+      {
+        "Guid": "6c763383c6491399871f34aef2fb867f",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "Kind": 1,
+        "Size": 8
+      },
+      {
+        "Guid": "c3d0501dc04152c857905b9ea3f398ce",
+        "Kind": 65537,
+        "Size": 200
+      },
+      {
+        "Guid": "e3f0715472444df516a555aded7b009a",
+        "Kind": 1,
+        "Size": 52
+      },
+      {
+        "Guid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "Kind": 1,
+        "Size": 56
+      }
+    ],
+    "Routes": [
+      {
+        "OwnerGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "OwnerKind": 1,
+        "Offset": 108,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "1baee505bf4fa433660df683b8fd15ac",
+        "OwnerKind": 1,
+        "Offset": 8,
+        "ChildGuid": "230d81130644153c599476aa073df0a7",
+        "ChildKind": 3
+      },
+      {
+        "OwnerGuid": "1baee505bf4fa433660df683b8fd15ac",
+        "OwnerKind": 1,
+        "Offset": 40,
+        "ChildGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "1baee505bf4fa433660df683b8fd15ac",
+        "OwnerKind": 1,
+        "Offset": 68,
+        "ChildGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "ChildKind": 65537
+      },
+      {
+        "OwnerGuid": "31b90b571c41b38cbe6f46b0e5eee47f",
+        "OwnerKind": 65536,
+        "Offset": 44,
+        "ChildGuid": "1baee505bf4fa433660df683b8fd15ac",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 0,
+        "ChildGuid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 32,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 60,
+        "ChildGuid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 88,
+        "ChildGuid": "36821172914f2cb2afda45a6bba5e7ab",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 120,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 148,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      }
+    ]
+  },
+  {
+    "Group": "ltvl",
+    "RootGuid": "e029886695422e9e3ff4e1acbc897706",
+    "SourceSchema": "5788fa3946a49f3e",
+    "NativeSchema": "9e9b3ac7cce8d135",
+    "Strides": [
+      {
+        "Guid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "Kind": 1,
+        "Size": 232
+      },
+      {
+        "Guid": "23089ca4624bcf4647395ba40eda112d",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "6c763383c6491399871f34aef2fb867f",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "Kind": 1,
+        "Size": 596
+      },
+      {
+        "Guid": "c3d0501dc04152c857905b9ea3f398ce",
+        "Kind": 65537,
+        "Size": 200
+      },
+      {
+        "Guid": "e029886695422e9e3ff4e1acbc897706",
+        "Kind": 0,
+        "Size": 48
+      },
+      {
+        "Guid": "e3f0715472444df516a555aded7b009a",
+        "Kind": 1,
+        "Size": 52
+      },
+      {
+        "Guid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "Kind": 1,
+        "Size": 56
+      },
+      {
+        "Guid": "fb6fa2771943160cd3c4e4814937dc69",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "fdc1f4e421456d77eaf4ccaacd0b3551",
+        "Kind": 1,
+        "Size": 64
+      }
+    ],
+    "Routes": [
+      {
+        "OwnerGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "OwnerKind": 1,
+        "Offset": 108,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "OwnerKind": 1,
+        "Offset": 4,
+        "ChildGuid": "230d81130644153c599476aa073df0a7",
+        "ChildKind": 3
+      },
+      {
+        "OwnerGuid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "OwnerKind": 1,
+        "Offset": 36,
+        "ChildGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "OwnerKind": 1,
+        "Offset": 64,
+        "ChildGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "ChildKind": 65537
+      },
+      {
+        "OwnerGuid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "OwnerKind": 1,
+        "Offset": 484,
+        "ChildGuid": "23089ca4624bcf4647395ba40eda112d",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "OwnerKind": 1,
+        "Offset": 512,
+        "ChildGuid": "fdc1f4e421456d77eaf4ccaacd0b3551",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "OwnerKind": 1,
+        "Offset": 540,
+        "ChildGuid": "fb6fa2771943160cd3c4e4814937dc69",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "OwnerKind": 1,
+        "Offset": 568,
+        "ChildGuid": "88f6fe12cf4ad53640f716af96b1422a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 0,
+        "ChildGuid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 32,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 60,
+        "ChildGuid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 88,
+        "ChildGuid": "36821172914f2cb2afda45a6bba5e7ab",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 120,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 148,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "e029886695422e9e3ff4e1acbc897706",
+        "OwnerKind": 0,
+        "Offset": 16,
+        "ChildGuid": "9bf93c7ef74a5cb81800998f8adde1b1",
+        "ChildKind": 1
+      }
+    ]
+  },
+  {
+    "Group": "trac",
+    "RootGuid": "7d1699d5ce493490cf5c78941630f02d",
+    "SourceSchema": "b570b7c7bc1e60a2",
+    "NativeSchema": "077f99f1c43ac3de",
+    "Strides": [
+      {
+        "Guid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "Kind": 1,
+        "Size": 232
+      },
+      {
+        "Guid": "23089ca4624bcf4647395ba40eda112d",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "6c763383c6491399871f34aef2fb867f",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "7d1699d5ce493490cf5c78941630f02d",
+        "Kind": 0,
+        "Size": 64
+      },
+      {
+        "Guid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "Kind": 1,
+        "Size": 8
+      },
+      {
+        "Guid": "c3d0501dc04152c857905b9ea3f398ce",
+        "Kind": 65537,
+        "Size": 200
+      },
+      {
+        "Guid": "cd3d8281e342aedf19a963a697b415b7",
+        "Kind": 1,
+        "Size": 900
+      },
+      {
+        "Guid": "e3f0715472444df516a555aded7b009a",
+        "Kind": 1,
+        "Size": 52
+      },
+      {
+        "Guid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "Kind": 1,
+        "Size": 56
+      },
+      {
+        "Guid": "fb6fa2771943160cd3c4e4814937dc69",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "fdc1f4e421456d77eaf4ccaacd0b3551",
+        "Kind": 1,
+        "Size": 64
+      }
+    ],
+    "Routes": [
+      {
+        "OwnerGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "OwnerKind": 1,
+        "Offset": 108,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "7d1699d5ce493490cf5c78941630f02d",
+        "OwnerKind": 0,
+        "Offset": 36,
+        "ChildGuid": "cd3d8281e342aedf19a963a697b415b7",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 0,
+        "ChildGuid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 32,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 60,
+        "ChildGuid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 88,
+        "ChildGuid": "36821172914f2cb2afda45a6bba5e7ab",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 120,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 148,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "cd3d8281e342aedf19a963a697b415b7",
+        "OwnerKind": 1,
+        "Offset": 428,
+        "ChildGuid": "230d81130644153c599476aa073df0a7",
+        "ChildKind": 3
+      },
+      {
+        "OwnerGuid": "cd3d8281e342aedf19a963a697b415b7",
+        "OwnerKind": 1,
+        "Offset": 460,
+        "ChildGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "cd3d8281e342aedf19a963a697b415b7",
+        "OwnerKind": 1,
+        "Offset": 488,
+        "ChildGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "ChildKind": 65537
+      },
+      {
+        "OwnerGuid": "cd3d8281e342aedf19a963a697b415b7",
+        "OwnerKind": 1,
+        "Offset": 816,
+        "ChildGuid": "23089ca4624bcf4647395ba40eda112d",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "cd3d8281e342aedf19a963a697b415b7",
+        "OwnerKind": 1,
+        "Offset": 844,
+        "ChildGuid": "fdc1f4e421456d77eaf4ccaacd0b3551",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "cd3d8281e342aedf19a963a697b415b7",
+        "OwnerKind": 1,
+        "Offset": 872,
+        "ChildGuid": "fb6fa2771943160cd3c4e4814937dc69",
+        "ChildKind": 1
+      }
+    ]
+  },
+  {
+    "Group": "licn",
+    "RootGuid": "7bf123ead748f15808fe1dad7475d3bd",
+    "SourceSchema": "50c885d21fc9fa23",
+    "NativeSchema": "e7390de515209cdb",
+    "Strides": [
+      {
+        "Guid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "Kind": 1,
+        "Size": 232
+      },
+      {
+        "Guid": "6c763383c6491399871f34aef2fb867f",
+        "Kind": 1,
+        "Size": 16
+      },
+      {
+        "Guid": "7bf123ead748f15808fe1dad7475d3bd",
+        "Kind": 0,
+        "Size": 144
+      },
+      {
+        "Guid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "Kind": 1,
+        "Size": 8
+      },
+      {
+        "Guid": "c3d0501dc04152c857905b9ea3f398ce",
+        "Kind": 65537,
+        "Size": 200
+      },
+      {
+        "Guid": "e3f0715472444df516a555aded7b009a",
+        "Kind": 1,
+        "Size": 52
+      },
+      {
+        "Guid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "Kind": 1,
+        "Size": 56
+      }
+    ],
+    "Routes": [
+      {
+        "OwnerGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "OwnerKind": 1,
+        "Offset": 108,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "7bf123ead748f15808fe1dad7475d3bd",
+        "OwnerKind": 0,
+        "Offset": 20,
+        "ChildGuid": "230d81130644153c599476aa073df0a7",
+        "ChildKind": 3
+      },
+      {
+        "OwnerGuid": "7bf123ead748f15808fe1dad7475d3bd",
+        "OwnerKind": 0,
+        "Offset": 52,
+        "ChildGuid": "063e4b5e3647a8183f96cfbe9dd6ca42",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "7bf123ead748f15808fe1dad7475d3bd",
+        "OwnerKind": 0,
+        "Offset": 80,
+        "ChildGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "ChildKind": 65537
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 0,
+        "ChildGuid": "ec1298cde14bd63c48fe3bb396a5bc0b",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 32,
+        "ChildGuid": "e3f0715472444df516a555aded7b009a",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 60,
+        "ChildGuid": "c0eca125be4c1fb8e266949fdbcfa980",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 88,
+        "ChildGuid": "36821172914f2cb2afda45a6bba5e7ab",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 120,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "c3d0501dc04152c857905b9ea3f398ce",
+        "OwnerKind": 65537,
+        "Offset": 148,
+        "ChildGuid": "6c763383c6491399871f34aef2fb867f",
+        "ChildKind": 1
+      }
+    ]
+  },
+  {
+    "Group": "ngst",
+    "RootGuid": "e5599a9c1f4f96f6dc5e84b2dbf1fdc2",
+    "SourceSchema": "09390d634282b033",
+    "NativeSchema": "dec62ce2b83a26a6",
+    "Strides": [
+      {
+        "Guid": "0c7fc857b143b6f9578093a26a13c4c3",
+        "Kind": 1,
+        "Size": 156
+      },
+      {
+        "Guid": "70b0bff24847a85ac7afc98b8fd861a8",
+        "Kind": 1,
+        "Size": 36
+      },
+      {
+        "Guid": "a90c2b23184faff112305b8e69b42772",
+        "Kind": 1,
+        "Size": 108
+      },
+      {
+        "Guid": "e5599a9c1f4f96f6dc5e84b2dbf1fdc2",
+        "Kind": 0,
+        "Size": 72
+      }
+    ],
+    "Routes": [
+      {
+        "OwnerGuid": "0c7fc857b143b6f9578093a26a13c4c3",
+        "OwnerKind": 1,
+        "Offset": 8,
+        "ChildGuid": "a90c2b23184faff112305b8e69b42772",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "0c7fc857b143b6f9578093a26a13c4c3",
+        "OwnerKind": 1,
+        "Offset": 108,
+        "ChildGuid": "0e883388d0451eae504cfc82ec5c0159",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "70b0bff24847a85ac7afc98b8fd861a8",
+        "OwnerKind": 1,
+        "Offset": 8,
+        "ChildGuid": "0c7fc857b143b6f9578093a26a13c4c3",
+        "ChildKind": 1
+      },
+      {
+        "OwnerGuid": "e5599a9c1f4f96f6dc5e84b2dbf1fdc2",
+        "OwnerKind": 0,
+        "Offset": 44,
+        "ChildGuid": "70b0bff24847a85ac7afc98b8fd861a8",
+        "ChildKind": 1
+      }
+    ]
+  }
+]

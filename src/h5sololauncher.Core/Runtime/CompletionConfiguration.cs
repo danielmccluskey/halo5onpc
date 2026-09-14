@@ -19,7 +19,7 @@ public static class CompletionConfiguration
     internal static byte[] PatchUi(byte[] source,string resource,string code,string label)
     {
         using var stream=typeof(CompletionConfiguration).Assembly.GetManifestResourceStream("H5SoloLauncher.Core.Runtime."+resource)
-            ??throw new CacheException("UI_RECIPE_NOT_INCLUDED","This build supports existing-cache playback but does not include the UI recipes needed to prepare a new cache. Select a complete cache. See docs/publication.md for build details.");
+            ??throw new CacheException("UI_RECIPE_NOT_INCLUDED","This launcher installation is missing a required UI recipe. Extract the complete launcher release and try again.");
         var recipe=JsonSerializer.Deserialize<UiScriptRecipe>(stream)??throw InputFiles.Damaged();
         if(source.Length!=recipe.InputBytes || InputFiles.Hash(source)!=recipe.InputSha256)throw new CacheException(code,$"The installed {label} script differs from the supported Forge version.");
         using var output=new MemoryStream();var cursor=0;

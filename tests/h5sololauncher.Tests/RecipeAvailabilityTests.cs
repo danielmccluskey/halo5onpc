@@ -9,15 +9,15 @@ public sealed class RecipeAvailabilityTests
     [Theory]
     [InlineData("completion-ui-recipe.json", "COMPLETION_UI_UNSUPPORTED")]
     [InlineData("display-ui-recipe.json", "DISPLAY_UI_UNSUPPORTED")]
-    public void SourceOnlyBuildExplainsMissingPreparationRecipes(string name, string unsupported)
+    public void BuildIncludesPreparationRecipesAndRejectsUnsupportedSource(string name, string unsupported)
     {
         using var resource = typeof(CompletionConfiguration).Assembly.GetManifestResourceStream("H5SoloLauncher.Core.Runtime." + name);
+        Assert.NotNull(resource);
         var error = Assert.Throws<CacheException>(() =>
         {
             if (name.StartsWith("completion")) CompletionConfiguration.PatchUi([]);
             else DisplayConfiguration.PatchUi([]);
         });
-        Assert.Equal(resource is null ? "UI_RECIPE_NOT_INCLUDED" : unsupported, error.Code);
-        if (resource is null) Assert.Contains("complete cache", error.Message);
+        Assert.Equal(unsupported, error.Code);
     }
 }

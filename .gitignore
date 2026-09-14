@@ -27,9 +27,6 @@ WindowsApps/
 *.key
 *.snk
 
-# Local-only UI byte recipes, pending provenance review. See docs/publication.md.
-/src/h5sololauncher.Core/Runtime/completion-ui-recipe.json
-/src/h5sololauncher.Core/Runtime/display-ui-recipe.json
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 

@@ -10,8 +10,8 @@
     <EmbeddedResource Include="Conversion/texture-addresses.json.gz" />
     <EmbeddedResource Include="Conversion/layout-profiles.json" />
     <EmbeddedResource Include="Conversion/audio-profiles.json" />
-    <EmbeddedResource Include="Runtime/completion-ui-recipe.json" Condition="Exists('Runtime/completion-ui-recipe.json')" />
-    <EmbeddedResource Include="Runtime/display-ui-recipe.json" Condition="Exists('Runtime/display-ui-recipe.json')" />
+    <EmbeddedResource Include="Runtime/completion-ui-recipe.json" />
+    <EmbeddedResource Include="Runtime/display-ui-recipe.json" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
   </ItemGroup>

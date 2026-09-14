@@ -1,13 +1,9 @@
 # h5sololauncher
 
-Source publication note: two local UI recipes are excluded pending provenance
-review. A fresh clone builds for existing-cache playback; preparing a new cache
-requires those recipes. See [publication boundary](../../docs/publication.md).
-
 A small WPF app that prepares Osiris and Blue Team from an extracted Halo 5:
 Guardians dump and starts the campaign in Halo 5: Forge. The modular implementation
 is under live validation; see [current evidence](../../docs/playable-implementation.md).
-Version 0.9.0 is a preview: automatic startup and an Osiris starting scene have
+Version 0.9.1 is a preview: automatic startup and an Osiris starting scene have
 been checked, but responsive controls, Blue Team and the onward transition have
 not yet been verified in this build.
 
@@ -76,7 +72,7 @@ cmake -S src/h5sololauncher.ForgeReader -B artifacts/forge-reader-build -A x64
 cmake --build artifacts/forge-reader-build --config Release
 ctest --test-dir artifacts/forge-reader-build -C Release --output-on-failure
 dotnet test h5sololauncher.slnx -c Release
-dotnet publish src/h5sololauncher -c Release -r win-x64 --self-contained true -o artifacts/h5sololauncher-0.9.0
+dotnet publish src/h5sololauncher -c Release -r win-x64 --self-contained true -o artifacts/h5sololauncher-0.9.1
 ```
 
 Keep the complete published folder together, including the worker, native DLLs,

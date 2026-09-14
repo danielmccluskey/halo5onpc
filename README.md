@@ -11,10 +11,10 @@ A small hobby project to get the **Halo 5: Guardians campaign running on PC** us
 ## Getting started
 
 1. Download a build from this repository's **Releases** and extract the ZIP.
-2. Open `h5sololauncher.exe`, choose your cache folder and click **Play**.
+2. Open `h5sololauncher.exe`. Choose your extracted dump and a cache destination, then click **Prepare & play**. If you already have a complete cache, select it and click **Play**.
 3. In Solo, choose Osiris or Blue Team and start your mission.
 
-Current public builds require an existing complete cache; new-cache preparation is not yet included. A complete cache does not need the original dump to play. English (US) is currently supported.
+A complete cache does not need the original dump to play. English (US) is currently supported.
 
 ## Preview and status
 
@@ -63,6 +63,6 @@ If you know something useful about Halo 5, Halo 5: Forge, its file formats or th
 
 For bug reports, use **Copy details** in the launcher and include what you were doing when the problem happened.
 
-[Launcher and build instructions](src/h5sololauncher/README.md) · [Testing status](docs/playable-implementation.md) · [Source release limitations](docs/publication.md)
+[Launcher and build instructions](src/h5sololauncher/README.md) · [Testing status](docs/playable-implementation.md)
 
 This is an unofficial, non-commercial fan project, unaffiliated with Microsoft, Xbox, 343 Industries or Halo Studios.

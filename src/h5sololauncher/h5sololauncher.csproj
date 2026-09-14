@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>h5sololauncher</AssemblyName>
     <RootNamespace>H5SoloLauncher</RootNamespace>
-    <Version>0.9.0</Version>
+    <Version>0.9.1</Version>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="QuickStart.txt" Link="README.txt" CopyToPublishDirectory="PreserveNewest" />

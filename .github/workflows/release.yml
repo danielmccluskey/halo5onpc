@@ -33,11 +33,11 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Check source publication boundary
+      - name: Check cache generation recipes
         run: |
           foreach ($name in @('completion-ui-recipe.json', 'display-ui-recipe.json')) {
-            if (Test-Path -LiteralPath "src/h5sololauncher.Core/Runtime/$name") {
-              throw "Release blocked: $name is local-only pending provenance review. See docs/publication.md."
+            if (!(Test-Path -LiteralPath "src/h5sololauncher.Core/Runtime/$name")) {
+              throw "Required cache generation recipe is missing: $name"
             }
           }
 
@@ -72,15 +72,6 @@ jobs:
               throw "Native DLL mismatch: $($file.Name)"
             }
           }
-          $notice = @'
-          AUTOMATED PREVIEW - EXISTING-CACHE PLAYBACK
-          This build does not include the two local UI recipes needed to prepare
-          a new cache. Choose an existing complete compatible cache and click Play.
-          No game files are included. Read PUBLICATION.md for details.
-
-          '@
-          $readme = Join-Path $app 'README.txt'
-          $notice + [Environment]::NewLine + (Get-Content -LiteralPath $readme -Raw) | Set-Content -LiteralPath $readme -Encoding utf8
           Copy-Item -LiteralPath docs/publication.md -Destination (Join-Path $app 'PUBLICATION.md')
           $tag = "main-$env:GITHUB_RUN_NUMBER-$env:GITHUB_RUN_ATTEMPT"
           $zip = "artifacts/h5sololauncher-$tag-win-x64.zip"
@@ -103,9 +94,9 @@ jobs:
           Download the ZIP, extract the whole folder and run h5sololauncher.exe.
           No Python or separate .NET installation is needed.
 
-          This build supports existing-cache playback. New-cache preparation is
-          unavailable because two local UI recipes are excluded pending provenance
-          review. Game files are not included. Forge and the Halo companion app
+          Choose your extracted campaign dump and a cache destination to prepare
+          a new cache, or select an existing complete cache to play without a dump.
+          Game files are not included. Forge and the Halo companion app
           must be installed. See the included README.txt and PUBLICATION.md.
 
           Native and managed tests passed. Gameplay is not tested by this workflow.

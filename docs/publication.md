@@ -5,22 +5,19 @@ campaign dumps, generated playable caches, installed game files, player saves,
 diagnostic captures or local published binaries. Build and validation artifacts
 remain ignored. Ignore rules do not protect files added with `git add -f`.
 
-## UI recipe restriction
+## Cache generation recipes
 
-`completion-ui-recipe.json` and `display-ui-recipe.json` contain literal script
-byte edits whose redistribution provenance has not been established. They remain
-local and are excluded from Git. Do not attach the current local binaries to a
-GitHub release: those binaries embed these recipes.
+`completion-ui-recipe.json` and `display-ui-recipe.json` are included in the
+source and embedded in release builds. They provide the script edits needed for
+mission completion and display settings during cache generation. Their inclusion
+has been approved by the project owner.
 
-The project conditionally embeds these files when present. A fresh source clone
-builds without them and can use a complete compatible playable cache. Preparing
-a new cache reaches a clear `UI_RECIPE_NOT_INCLUDED` error. Full source-only
-preparation remains pending replacement of these recipes with independently
-documented transformations or resolution of their provenance. This is a known
-distribution limitation, not a completed full-feature release.
+Both recipes are required build inputs. Tests check that they are embedded, and
+the release workflow checks that neither file is missing. Source and release
+builds support preparing a cache from the player's extracted dump as well as
+playing an existing complete cache without a dump.
 
-Existing local builds and recipes are retained. A playable cache itself contains
-game-derived assets and is not part of the source release.
+A playable cache contains game-derived assets and is not part of the source release.
 
 ## Other embedded data and dependencies
 
@@ -47,9 +44,6 @@ components, run native and managed tests, and publish a self-contained x64 ZIP
 with a SHA-256 checksum as a GitHub prerelease. The workflow can also be started
 manually on `main`. Each run/attempt gets a unique tag tied to its exact commit.
 
-The workflow refuses to publish if either excluded UI recipe is present. Its
-ZIP and release notes explicitly describe the existing-cache-only limitation.
-It uses GitHub's automatic token with release write permission; no personal
-access token or game installation is needed. Nothing is released if build or
-tests fail. These CI-built packages are distinct from local builds that embed
-the excluded recipes.
+The workflow includes both cache generation recipes. It uses GitHub's automatic
+token with release write permission; no personal access token or game installation
+is needed. Nothing is released if build or tests fail.

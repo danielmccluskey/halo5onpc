@@ -65,7 +65,7 @@ jobs:
             if (!(Test-Path -LiteralPath (Join-Path $app $file))) { throw "Missing release file: $file" }
           }
           $native = @(Get-ChildItem artifacts/forge-reader-build/Release -Filter 'h5sololauncher.*.dll')
-          if ($native.Count -ne 13) { throw 'Expected 13 native runtime DLLs.' }
+          if ($native.Count -ne 14) { throw 'Expected 14 native runtime DLLs.' }
           foreach ($file in $native) {
             $copy = Join-Path $app $file.Name
             if ((Get-FileHash -LiteralPath $file.FullName).Hash -ne (Get-FileHash -LiteralPath $copy).Hash) {

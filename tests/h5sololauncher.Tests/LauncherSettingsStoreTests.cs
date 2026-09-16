@@ -21,8 +21,9 @@ public sealed class LauncherSettingsStoreTests
         Assert.Equal(moved, await store.LoadCampaignDirectoryAsync());
         Assert.Single(Directory.GetFiles(Path.GetDirectoryName(path)!));
         using var json = JsonDocument.Parse(await File.ReadAllTextAsync(path));
-        Assert.Equal(3, json.RootElement.EnumerateObject().Count());
+        Assert.Equal(4, json.RootElement.EnumerateObject().Count());
         Assert.Equal(2, json.RootElement.GetProperty("SchemaVersion").GetInt32());
+        Assert.True(json.RootElement.GetProperty("KeepRebuildData").GetBoolean());
     }
 
     [Fact]

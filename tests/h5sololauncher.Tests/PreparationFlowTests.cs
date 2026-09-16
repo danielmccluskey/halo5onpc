@@ -21,7 +21,7 @@ public sealed class PreparationFlowTests
     public async Task OneActionPreparesPlaysAndMonitorsWithoutDuplicateJobs()
     {
         using var fixture=new IndexFixture();var worker=new Worker();var model=await Model(fixture,worker);
-        var job=model.PrimaryAsync();await model.PrimaryAsync();
+        var job=model.PrimaryAsync();await worker.StartedPrepare.Task.WaitAsync(TimeSpan.FromSeconds(10));await model.PrimaryAsync();
         Assert.Equal(new[]{"prepare"},worker.Calls);Assert.True(model.IsWorking);Assert.False(model.CanChoose);
         worker.Prepared.SetResult(new("Ready","Ready","Prepared",PreparedId:new string('A',64)));
         await worker.StartedPlay.Task.WaitAsync(TimeSpan.FromSeconds(10));
@@ -39,7 +39,7 @@ public sealed class PreparationFlowTests
     public async Task PauseDuringPreparationNeverStartsForgeEvenIfWorkerJustFinished()
     {
         using var fixture=new IndexFixture();var worker=new Worker();var model=await Model(fixture,worker);
-        var job=model.PrimaryAsync();var closing=model.PauseAndWaitAsync();
+        var job=model.PrimaryAsync();await worker.StartedPrepare.Task.WaitAsync(TimeSpan.FromSeconds(10));var closing=model.PauseAndWaitAsync();
         Assert.True(worker.Token.IsCancellationRequested);
         worker.Prepared.SetResult(new("Ready","Ready","Prepared",PreparedId:new string('B',64)));
         await closing;await job;
@@ -90,11 +90,12 @@ public sealed class PreparationFlowTests
         public TaskCompletionSource<PreparationResult> Prepared {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CampaignPlayResult> Played {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CampaignPlayResult> Watched {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource StartedPrepare {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource StartedPlay {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource StartedWatch {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Task<IndexResult> RunAsync(IndexRequest request,IProgress<IndexProgress> progress,CancellationToken cancellation)=>throw new NotSupportedException();
         public Task<PreparationResult> PrepareAsync(PrepareRequest request,IProgress<IndexProgress> progress,CancellationToken cancellation)
-        {Calls.Add("prepare");Token=cancellation;return Prepared.Task;}
+        {Calls.Add("prepare");Token=cancellation;StartedPrepare.SetResult();return Prepared.Task;}
         public Task<CampaignPlayResult> PlayAsync(CampaignPlayRequest request,IProgress<IndexProgress> progress,CancellationToken cancellation)
         {Calls.Add("play");Token=cancellation;PlayRequest=request;StartedPlay.SetResult();return Played.Task;}
         public Task<CampaignPlayResult> WatchAsync(CampaignWatchRequest request,IProgress<IndexProgress> progress,CancellationToken cancellation)

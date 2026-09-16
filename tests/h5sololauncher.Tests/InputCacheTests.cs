@@ -27,7 +27,7 @@ public sealed class InputCacheTests
     {
         using var f = new ForgePreparationTests.Fixture(); f.Run(); var result = Run(f);
         Assert.Equal("Cached", result.State); var summary = result.Summary!;
-        Assert.Equal(4, summary.Tags); Assert.Equal(3, summary.UniquePayloads); Assert.Equal(1, summary.Packs);
+        Assert.Equal(ContentBundles.All[0].Scenarios.Length + 1, summary.Tags); Assert.Equal(3, summary.UniquePayloads); Assert.Equal(1, summary.Packs);
         var manifest = Manifest(f, result); Assert.Equal(f.Request.PlanId, manifest.PlanId);
         Assert.Contains(manifest.RemainingSteps, x => x.Contains("resources", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(f.Request.SourceRoot, JsonSerializer.Serialize(manifest));

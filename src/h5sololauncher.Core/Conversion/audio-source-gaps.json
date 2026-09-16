@@ -1,0 +1,60 @@
+{
+  "SourceVersion": "1.1.31695.21",
+  "Banks": [
+    {
+      "Id": 3383643097,
+      "Name": "sb_001_vo_scr_w1hub",
+      "TagSha256": "8D5A9EE40A1F364F7FF90E174EA3A5897F6CD4C0FCCF11DF59393B4CD16B0F8E"
+    },
+    {
+      "Id": 3962986589,
+      "Name": "sb_001_vo_scr_w1hubattackbases",
+      "TagSha256": "C8EEC417E4B70CED83A4523106D903EF237B3359F2E2578BAD200C0912969B1B"
+    },
+    {
+      "Id": 450922310,
+      "Name": "sb_001_vo_scr_w1hubcampdefend",
+      "TagSha256": "5807276B888DC40CF685DA8781F02FC8A36486BB9198B3453D4E2D53096BD7CC"
+    },
+    {
+      "Id": 68521026,
+      "Name": "sb_001_vo_scr_w3hubsentinels",
+      "TagSha256": "C615C5E49B2AB49D4EBF9EC44FBE15C59080E6B443AD2A7444323521EC6AB854"
+    },
+    {
+      "Id": 96956292,
+      "Name": "sb_001_vo_scr_w2hub",
+      "TagSha256": "04FDD4A41DBFF43ADE95DF6E195DC0CC9F8CB77CBEAB3949E99825AEF2707447"
+    },
+    {
+      "Id": 179179933,
+      "Name": "sb_001_vo_scr_w2hubbeach",
+      "TagSha256": "A76705346ACED972634AB7E624C190F6F95228BECCE4B8CC623187AA8DD1284C"
+    },
+    {
+      "Id": 2843734339,
+      "Name": "sb_001_vo_scr_w3hub",
+      "TagSha256": "D4F9E1F41E2B449151197BBDDAB9ABE7215D4770E56F0BC45314EEFB841D6A2C"
+    },
+    {
+      "Id": 3861133929,
+      "Name": "sb_001_vo_scr_w3citadeldestroyer",
+      "TagSha256": "146D8E40853364B62139C30400D5339FE4FF96F661FF641A69C6152AB2EC61EA"
+    },
+    {
+      "Id": 3877021433,
+      "Name": "sb_001_vo_scr_e3demo",
+      "TagSha256": "F7924B211862EC7856CF2210331C19E1FC36B843D63778DDE90F1583985F376A"
+    },
+    {
+      "Id": 4023051487,
+      "Name": "sb_001_vo_scr_w3hubmonitor",
+      "TagSha256": "0F075D4D2BDC2F96164CC73D40A8F820B4975ED662F1591C1948CB181D5F0BC3"
+    },
+    {
+      "Id": 4209704550,
+      "Name": "m10_sirens",
+      "TagSha256": "7F48619BC27CEEB896E72922383A425157175187616E93150C88194FE3648D9F"
+    }
+  ]
+}

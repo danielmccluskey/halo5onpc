@@ -10,6 +10,7 @@
     <EmbeddedResource Include="Conversion/texture-addresses.json.gz" />
     <EmbeddedResource Include="Conversion/layout-profiles.json" />
     <EmbeddedResource Include="Conversion/audio-profiles.json" />
+    <EmbeddedResource Include="Conversion/audio-source-gaps.json" />
     <EmbeddedResource Include="Runtime/completion-ui-recipe.json" />
     <EmbeddedResource Include="Runtime/display-ui-recipe.json" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />

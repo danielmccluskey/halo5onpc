@@ -19,6 +19,7 @@ struct State {
 static State CompletionState={0x31504d4f433548ULL,1,sizeof(State)};
 static PVOID handler=nullptr;static bool errorsArmed=false;
 static bool releaseWon=false,advancing=false,dismissed=false;static uint32_t activeMap=0xffffffff;
+static bool returningToMenu=false;
 static constexpr uint64_t updateRva=0x869460,wonRva=0x1363900,visibleRva=0x1f714a0,loomOptionsRva=0x5e4cf0,loomPathRva=0x5e4d50;
 static uint64_t base(){return CompletionState.base;}
 static bool swapByte(uint64_t address,unsigned char from,unsigned char to){DWORD old;auto p=(volatile char*)address;
@@ -58,6 +59,30 @@ static bool successorPreload(uint32_t current,const void* request,bool pathOnly)
  // available; actual advancement still waits for the report's Continue action.
  for(auto& map:campaign_maps)if(isSuccessor(current,map.scenario.c_str())&&matchingPreload(&map,request,pathOnly))return true;
  return false;
+}
+static bool menuPreload(const void* request,bool pathOnly){
+ // These are the same two native request layouts used by matchingPreload.
+ // Allow only the PC front-end scenario, never arbitrary non-successor maps.
+ if(!request)return false;
+ __try {
+  const char* path=(const char*)request+(pathOnly?0:0x1048);
+  const char expected[]="levels/ui/mainmenu/mainmenu";
+  for(size_t i=0;i<sizeof(expected);++i){
+   char c=path[i];if(c=='\\')c='/';else if(c>='A'&&c<='Z')c+=32;
+   if(c!=expected[i])return false;
+  }
+  return true;
+ } __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+static void resetMissionState(){auto&s=CompletionState;
+ // Do not dereference the old VM or UI assets here: teardown may own them.
+ activeMap=0xffffffff;advancing=dismissed=releaseWon=false;
+ s.phase=0;s.installed=0;s.command=0;s.vm=0;s.lastPoll=0;s.xmlLength=0;
+ s.mission[0]=s.next[0]=s.cinematic[0]=s.synthetic[0]=s.scores[0]=0;
+}
+static void beginMenuReturn(){
+ if(returningToMenu)return;
+ returningToMenu=true;resetMissionState();record("leave|native main menu preload allowed; completion suspended");
 }
 static void report(const char* text){auto&s=CompletionState;if(!text)return;
  record(text);auto separator=strchr(text,'|');if(!separator)return;std::string key(text,separator);auto value=separator+1;
@@ -115,7 +140,12 @@ static bool execute(uint64_t vm,const char* source,uint32_t flags,bool drain=fal
  if(!clean)s.error=22;
  if(s.message[0]){if(!s.error)s.error=23;record(s.message);}
  return result;}
-static void tick(){auto&s=CompletionState;if(s.error||!campaign())return;
+static void tick(){auto&s=CompletionState;
+ if(!campaign()){
+  if(returningToMenu){resetMissionState();returningToMenu=false;record("leave|campaign state released");}
+  return;
+ }
+ if(s.error||returningToMenu)return;
  auto currentMap=*(uint32_t*)(game()+0x3603c);
  if(activeMap!=currentMap){activeMap=currentMap;advancing=dismissed=releaseWon=false;s.phase=0;s.installed=0;s.xmlLength=0;s.next[0]=0;record("map|campaign scenario changed");}
  auto owner=base()+0x5982ac0;auto vm=*(uint64_t*)(owner+8);if(!vm||*(uint64_t*)(vm+0x98)!=owner)return;
@@ -160,7 +190,7 @@ static LONG CALLBACK trap(EXCEPTION_POINTERS*x){if(x->ExceptionRecord->Exception
   c->Rsp-=8;*(uint64_t*)c->Rsp=c->R14;c->Rip=at+2;return EXCEPTION_CONTINUE_EXECUTION;
  }
  if(at==base()+wonRva){
-  if(campaign()&&!releaseWon){InterlockedIncrement(&s.wonBlocked);record("game_won_held|awaiting completion handoff");c->Rip=*(uint64_t*)c->Rsp;c->Rsp+=8;}
+  if(!returningToMenu&&campaign()&&!releaseWon){InterlockedIncrement(&s.wonBlocked);record("game_won_held|awaiting completion handoff");c->Rip=*(uint64_t*)c->Rsp;c->Rsp+=8;}
   else{c->Rsp-=0x38;c->Rip=at+4;}
   return EXCEPTION_CONTINUE_EXECUTION;
  }
@@ -172,9 +202,11 @@ static LONG CALLBACK trap(EXCEPTION_POINTERS*x){if(x->ExceptionRecord->Exception
  if(at==base()+loomOptionsRva||at==base()+loomPathRva){
   // Both native background-scenario request forms converge here. Cinematic
   // tracks can invoke these before their ending script reaches game_won.
-  auto g=game();bool owned=s.phase>0||campaign();
-  bool valid=owned&&g&&successorPreload(*(uint32_t*)(g+0x3603c),(void*)c->Rcx,at==base()+loomPathRva);
-  if(owned&&!valid){
+  auto g=game();bool owned=returningToMenu||s.phase>0||campaign();
+  bool menu=owned&&menuPreload((void*)c->Rcx,at==base()+loomPathRva);
+  bool valid=owned&&!returningToMenu&&g&&successorPreload(*(uint32_t*)(g+0x3603c),(void*)c->Rcx,at==base()+loomPathRva);
+  if(menu)beginMenuReturn();
+  if(owned&&!menu&&!valid){
    record(at==base()+loomPathRva?"preload_held|scenario path":"preload_held|next campaign options");
    c->Rip=*(uint64_t*)c->Rsp;c->Rsp+=8;
   }else{if(valid)record("preload_allowed|validated authored successor");*(uint64_t*)(c->Rsp+8)=c->Rbx;c->Rip=at+5;}

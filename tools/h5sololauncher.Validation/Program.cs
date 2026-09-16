@@ -5,6 +5,17 @@ using H5SoloLauncher.Core.Content;
 using H5SoloLauncher.Core.Conversion;
 using H5SoloLauncher.Core.Forge;
 
+if(args.Length==8 && args[0]=="--offline-inputs")
+    return OfflineInputs.Run(args);
+if(args.Length==9 && args[0]=="--offline-audio")
+    return OfflineInputs.Audio(args);
+if(args.Length==6 && args[0]=="--seal-cache")
+    return OfflineInputs.Seal(args);
+if(args.Length==3 && args[0]=="--offline-finish")
+    return OfflineInputs.Finish(args);
+if(args.Length==4 && args[0]=="--offline-legacy")
+    return OfflineInputs.Legacy(args);
+
 if(args.Length==4 && args[0]=="--bitmap-shapes")
 {
     var metadata=FileMetadata.Read(args[1],"Module",default);using var stream=File.OpenRead(args[1]);var wanted=args[3].Split(',');HashSet<string> lines=[];

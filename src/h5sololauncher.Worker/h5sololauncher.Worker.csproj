@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>h5sololauncher.Worker</AssemblyName>
-    <Version>0.9.1</Version>
+    <Version>0.12.0</Version>
     <ForgeReaderPath Condition="'$(ForgeReaderPath)' == ''">$(MSBuildThisFileDirectory)../../artifacts/forge-reader-build/Release/h5sololauncher.ForgeReader.dll</ForgeReaderPath>
     <HubBridgePath Condition="'$(HubBridgePath)' == ''">$(MSBuildThisFileDirectory)../../artifacts/forge-reader-build/Release/h5sololauncher.HubBridge.dll</HubBridgePath>
   </PropertyGroup>
@@ -22,6 +22,7 @@
     <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.TitleAutomation.dll" Link="h5sololauncher.TitleAutomation.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignRegistry.dll" Link="h5sololauncher.CampaignRegistry.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignRenderer.dll" Link="h5sololauncher.CampaignRenderer.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignDeformation.dll" Link="h5sololauncher.CampaignDeformation.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignUi.dll" Link="h5sololauncher.CampaignUi.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../artifacts/forge-reader-build/Release/h5sololauncher.CampaignAudio.dll" Link="h5sololauncher.CampaignAudio.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../h5sololauncher.ForgeReader/third_party/dxilhash/LICENSE.TXT" Link="licenses/DirectXShaderCompiler.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

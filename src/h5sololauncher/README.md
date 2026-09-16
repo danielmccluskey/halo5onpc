@@ -1,11 +1,10 @@
 # h5sololauncher
 
-A small WPF app that prepares Osiris and Blue Team from an extracted Halo 5:
+A small WPF app that prepares all 15 missions through Guardians from an extracted Halo 5:
 Guardians dump and starts the campaign in Halo 5: Forge. The modular implementation
 is under live validation; see [current evidence](../../docs/playable-implementation.md).
-Version 0.9.1 is a preview: automatic startup and an Osiris starting scene have
-been checked, but responsive controls, Blue Team and the onward transition have
-not yet been verified in this build.
+Version 0.12.0 adds full campaign preparation. Osiris and Blue Team are user-verified;
+see [Expansion preparation record](../../docs/meridian-station-implementation.md) for this expansion.
 
 ## Use
 
@@ -15,7 +14,7 @@ not yet been verified in this build.
    Both choices are remembered. New caches use a `h5sololauncher-cache` subfolder.
 3. Click **Play**, or **Prepare & play** for a new cache. Preparation, cache
    permissions, Forge startup, title entry and campaign setup run automatically.
-   In Solo, choose Osiris or Blue Team, your difficulty and **Start New Mission**.
+   In Solo, choose an available mission, your difficulty and **Start New Mission**.
 
 There is no timed Continue or Solo click during setup. **Pause** keeps completed
 cache stages. **Stop monitoring** leaves Forge running; closing the launcher also
@@ -30,6 +29,10 @@ or required by the published app. Game assets are read from the selected dump
 and the installed Forge package.
 
 ## Cache and errors
+
+To add the three missions after Glassed to an existing cache, select the extracted dump and
+use **Options and diagnostics > Prepare cache only**. Existing complete caches
+remain playable without the dump. Updating the launcher alone does not add assets.
 
 Use a writable local NTFS drive with room for generated game modules, source
 packs, native conversion controls and metadata. The source dump and Forge
@@ -59,8 +62,7 @@ never blindly retries an uncertain native operation in the same process.
 Field of view is stored in Forge's own LocalState `h5sololauncher/display.ini`.
 The settings menu provides the original frame rates plus 144 and 180 FPS options.
 Explicit cinematic timing is preserved. Mission reports and the available
-Osiris-to-Blue-Team route use the original campaign lifecycle. No later mission
-is declared available by this build.
+routes through Guardians use the original campaign lifecycle. The full campaign expansion awaits bulk gameplay testing.
 
 ## Build
 
@@ -72,7 +74,7 @@ cmake -S src/h5sololauncher.ForgeReader -B artifacts/forge-reader-build -A x64
 cmake --build artifacts/forge-reader-build --config Release
 ctest --test-dir artifacts/forge-reader-build -C Release --output-on-failure
 dotnet test h5sololauncher.slnx -c Release
-dotnet publish src/h5sololauncher -c Release -r win-x64 --self-contained true -o artifacts/h5sololauncher-0.9.1
+dotnet publish src/h5sololauncher -c Release -r win-x64 --self-contained true -o artifacts/h5sololauncher-0.12.0
 ```
 
 Keep the complete published folder together, including the worker, native DLLs,

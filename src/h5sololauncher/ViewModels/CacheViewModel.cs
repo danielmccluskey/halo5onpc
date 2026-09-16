@@ -69,6 +69,7 @@ public sealed partial class CacheViewModel(ILauncherSettingsStore settings, IInd
         IsBusy = true; Refresh();
         try
         {
+            KeepRebuildData = await settings.LoadKeepRebuildDataAsync();
             Directory = await settings.LoadCacheDirectoryAsync() ?? string.Empty;
             if (HasDirectory)
             {

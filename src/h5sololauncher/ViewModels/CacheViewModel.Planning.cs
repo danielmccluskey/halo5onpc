@@ -20,14 +20,14 @@ public sealed partial class CacheViewModel
         get => selectedLanguage;
         set { if (IsBusy || value == selectedLanguage) return; selectedLanguage = value ?? string.Empty; planResult = null;ClearPrepared();Refresh();RefreshPrepared(); }
     }
-    private bool HasMatchingPlan => planned is not null && planned.Language == SelectedLanguage;
+    private bool HasMatchingPlan => planned is not null && planned.Language == SelectedLanguage && planned.BundleId == "full-campaign";
     public bool CanOpenPlan => !IsBusy && HasMatchingPlan;
     public string PlanPath => HasMatchingPlan ? SafePaths.Child(Directory, planned!.RelativePath) : string.Empty;
     public string PlanStatus => IsPlanning ? "Checking campaign dependencies…" : planResult?.State switch
     {
         "Failed" => "Dependency check needs attention.",
         "Paused" => "Dependency check paused.",
-        _ => HasMatchingPlan ? "Source dependency plan saved." : "Check the files needed for Osiris and Blue Team."
+        _ => HasMatchingPlan ? "Source dependency plan saved." : "Check the files needed for Osiris through Guardians."
     };
     public string PlanMessage => planResult?.State is "Failed" or "Paused" ? planResult.Message ?? string.Empty : HasMatchingPlan
         ? $"{planned!.RootModules:N0} campaign modules, {planned.Tags:N0} stored tags and {planned.DependencyReferences:N0} references checked.\n" +

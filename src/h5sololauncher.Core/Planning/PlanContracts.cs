@@ -3,7 +3,7 @@ namespace H5SoloLauncher.Core.Planning;
 public sealed record ContentBundle(string Id, int Revision, string Title, string[] Scenarios);
 public sealed record AssetReference(string Group, string TagId, string AssetId);
 public sealed record PlanRequest(string SourceRoot, string CacheRoot, string? ForgeRoot = null,
-    string BundleId = "first-two-missions", string Language = "English(US)");
+    string BundleId = "full-campaign", string Language = "English(US)");
 public sealed record PlanResource(int Item, string State, long StoredBytes, long LogicalBytes);
 public sealed record PlannedTag(string File, int Item, string Name, AssetReference Identity, string Checksum,
     bool Root, string PayloadSha256, long StoredBytesRead, long LogicalBytes,

@@ -32,7 +32,7 @@ public sealed class ForgeFiles : IForgePayloadReader, IForgeAudioReader
         if (Native.GetPackagePathByFullName(request.PackageFullName, ref size, path) != 0 ||
             !SafePaths.Canonical(path.ToString()).Equals(SafePaths.Canonical(request.ForgeRoot), StringComparison.OrdinalIgnoreCase))
             throw new CacheException("FORGE_INSTALLATION_CHANGED", "Forge’s install folder changed. Check Forge again before preparing data.");
-        SafePaths.NoLinks(request.ForgeRoot);
+        SafePaths.PackageRoot(request.ForgeRoot);
     }
     public ForgeRead Read(string relative, long offset, int count, CancellationToken cancellation) => ReadFile(relative, offset, count, false, cancellation);
     public ForgeRead ReadPayload(string relative, long offset, int count, CancellationToken cancellation) => ReadFile(relative, offset, count, true, cancellation);
@@ -41,7 +41,7 @@ public sealed class ForgeFiles : IForgePayloadReader, IForgeAudioReader
     {
         cancellation.ThrowIfCancellationRequested();
         if (!(audio ? ForgePaths.IsAudio(relative) : ForgePaths.IsGlobal(relative)) || offset < 0 || count is < 1 or > 1024 * 1024) throw new CacheException("FORGE_READ_INVALID", "The Forge table read request is invalid.");
-        var path = SafePaths.Child(request.ForgeRoot, relative);
+        var path = SafePaths.PackageChild(request.ForgeRoot, relative);
         var operation = audio ? 4 : payload ? 3 : 1;
         if (session is not null) return session.Read(operation, relative, offset, count, cancellation);
         try

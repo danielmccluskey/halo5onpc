@@ -11,6 +11,13 @@ using H5SoloLauncher.Worker;
 
 try
 {
+    if(args.Length is 4 or 5 && args[0] is "--cleanup-cache" or "--preview-cleanup")
+    {
+        var root=CacheFolders.OpenExisting(args[1],args[2]).Root;
+        if(args[0]=="--cleanup-cache") H5SoloLauncher.Core.Runtime.CacheCleanup.Schedule(root,args.Length==4 || args[4]!="--discard-rebuild-data");
+        var result=CacheMaintenance.Run(root,args[2],args[3],args[0]=="--preview-cleanup");
+        Console.WriteLine(JsonSerializer.Serialize(result));return result.State=="Deferred"?2:0;
+    }
     if(args.Length==4 && args[0] is "--check-cache" or "--play-cache")
     {
         var cache=H5SoloLauncher.Core.Runtime.PlayableCache.Open(args[1],args[2],args[3]);
@@ -58,6 +65,10 @@ try
     if(args.Length==5 && args[0] is "--arm-ui-residency" or "--ui-residency-status")
     {
         Console.WriteLine(JsonSerializer.Serialize(CampaignUiRuntime.Run(args[1],args[2],args[3],args[4],args[0]=="--arm-ui-residency",default)));return 0;
+    }
+    if(args.Length is 3 or 4 && args[0] is "--arm-deformation" or "--deformation-status")
+    {
+        Console.WriteLine(JsonSerializer.Serialize(CampaignDeformationRuntime.Run(args[1],args[2],args[0]=="--arm-deformation",default,args.Length==4?args[3]:"h5sololauncher.CampaignDeformation.dll")));return 0;
     }
     if(args.Length==3 && args[0] is "--arm-renderer" or "--renderer-status")
     {
@@ -182,7 +193,7 @@ try
         using var stop = new CancellationTokenSource();
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; stop.Cancel(); };
         var last = DateTime.MinValue;
-        var prepared = new PreparationCoordinator(new PreparationServices()).Run(new(args[1], args[2], args[3], args[4], args.Length == 6 ? args[5] : "English(US)"), new CallbackProgress(p =>
+        var prepared = CacheMaintenance.Prepare(new(args[1], args[2], args[3], args[4], args.Length == 6 ? args[5] : "English(US)"), new CallbackProgress(p =>
         {
             if ((DateTime.UtcNow - last).TotalSeconds < 5) return;
             last = DateTime.UtcNow; Console.WriteLine(JsonSerializer.Serialize(p));
@@ -342,7 +353,7 @@ try
         : request.Type == "plan" ? new WorkerMessage("result", PlanResult: new BuildPlanner().Run(request.PlanRequest!, progress, cancellation.Token))
         : request.Type == "forge" ? new WorkerMessage("result", ForgeResult: Prepare(request.ForgeRequest!, progress, cancellation.Token))
         : request.Type == "inputs" ? new WorkerMessage("result", InputResult: new InputCacheBuilder().Run(request.InputRequest!, progress, cancellation.Token))
-        : request.Type == "prepare" ? new WorkerMessage("result", PreparationResult: new PreparationCoordinator(new PreparationServices()).Run(request.PrepareRequest!, progress, cancellation.Token))
+        : request.Type == "prepare" ? new WorkerMessage("result", PreparationResult: CacheMaintenance.Prepare(request.PrepareRequest!, progress, cancellation.Token))
         : request.Type=="watch"?new WorkerMessage("result",PlayResult:CampaignWatch.Run(request.WatchRequest!,progress,cancellation.Token))
         : request.Type=="play"?new WorkerMessage("result",PlayResult:CampaignPlayback.Run(request.PlayRequest!,progress,cancellation.Token))
         : new WorkerMessage("result", LaunchResult: WindowsForgeLaunch.Run(request.LaunchRequest!, progress, cancellation.Token)));

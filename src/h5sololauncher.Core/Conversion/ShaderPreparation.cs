@@ -18,7 +18,7 @@ public sealed record ShaderPreparationResult(string State, string? ManifestId = 
 
 public static class ShaderPreparation
 {
-    public const string Rules = "campaign-shaders-1";
+    public const string Rules = "campaign-shaders-2";
     private sealed record NativeBank(CachedNativeModule Module, ModuleEntry Tag, ModuleEntry Resource, byte[] TagBytes, TagDocument Document);
     private sealed record Definition(EffectiveTag Tag, TagDocument Document, string Bank, ShaderField[] Fields, uint?[] NativeKeys);
     public static ShaderPreparationResult Run(ShaderPreparationRequest request, Func<IShaderValidator> validatorFactory, IProgress<IndexProgress> progress, CancellationToken cancellation)
@@ -79,7 +79,15 @@ public static class ShaderPreparation
                 for (var i = 0; i < fields.Length; i++)
                 {
                     var field = fields[i]; var high = (uint)(field.Key >> 32); mappings.TryGetValue((bank, field.Stage, high), out var candidates);
-                    if (candidates?.Count > 1) throw Invalid("Native shader controls disagree on a platform key.");
+                    // Different native material controls can map the same source key to different
+                    // PC programs. Translate the original source program in that case instead of
+                    // choosing a native variant. Merge still rejects any native key collision.
+                    if (candidates?.Count > 1)
+                    {
+                        if (high == uint.MaxValue) throw Invalid("Native shader controls disagree on an absent-stage sentinel.");
+                        nativeKeys[i] = null;
+                        continue;
+                    }
                     var key = candidates?.Count == 1 ? candidates.Single() : high == uint.MaxValue || stageKeys[field.Stage].Contains(high) ? high : (uint?)null;
                     if (key is not null && key != uint.MaxValue && !stageKeys[field.Stage].Contains(key.Value)) throw Invalid("A mapped native shader key is absent from its stage.");
                     nativeKeys[i] = key;

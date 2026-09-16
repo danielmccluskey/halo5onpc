@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using H5SoloLauncher.Core.Conversion;
 using H5SoloLauncher.Core.Preparation;
+using H5SoloLauncher.Core.Planning;
 using H5SoloLauncher.Core.Storage;
 
 namespace H5SoloLauncher.Core.Runtime;
@@ -61,7 +62,11 @@ public static class PlayableCache
             if (source.Length is <= 0 or > 1024 * 1024) throw Incomplete("Unsupported campaign variant: " + name);
             var bytes = new byte[source.Length]; source.ReadExactly(bytes);
             var sha = InputFiles.Hash(bytes); var relative = "game/variants/" + sha.ToLowerInvariant() + "/" + name;
-            InputFiles.Write(cache.Root, relative, bytes);
+            var destination=SafePaths.Child(cache.Root,relative);
+            // Forge can retain read handles on an older cache's identical
+            // variants. Expanding the mission bundle need not replace them.
+            if(!File.Exists(destination) || !File.ReadAllBytes(destination).AsSpan().SequenceEqual(bytes))
+                InputFiles.Write(cache.Root, relative, bytes);
             variants.Add(new("__cms__/campaign/" + name, relative, bytes.Length, sha));
         }
         return Import(cache.Root, input.ForgeRoot, input.PackageFullName, preparedId, variants.ToArray());
@@ -141,7 +146,10 @@ public static class PlayableCache
         if (manifest.Format != 1 || p.Format != 1 || p.Rules != PreparedCampaignStore.Rules || manifest.Language != "English(US)")
             throw new CacheException("PLAYABLE_CACHE_UNSUPPORTED", "This playable cache format or language needs a different launcher version.");
         if (p.PackageFullName != package) throw new CacheException("PLAYABLE_FORGE_MISMATCH", "This cache was built for " + p.PackageFullName + ". Install the matching Forge version or choose the dump to rebuild it.");
-        if (manifest.Maps.Length != 19 || manifest.Maps.Select(x => x.MapId).Distinct().Count() != 19 || manifest.Maps.Count(x => x.Available) != 3)
+        var available=manifest.Maps.Where(x=>x.Available).Select(x=>x.Scenario).ToArray();
+        if (manifest.Maps.Length != 19 || manifest.Maps.Select(x => x.MapId).Distinct().Count() != 19 ||
+            manifest.Maps.Select(x=>x.Scenario).Distinct(StringComparer.Ordinal).Count()!=19 ||
+            !ContentBundles.All.Any(bundle=>available.Length==bundle.Scenarios.Length && available.ToHashSet(StringComparer.Ordinal).SetEquals(bundle.Scenarios)))
             throw Incomplete("The mission catalogue is incomplete.");
         foreach (var (category, id, limit) in new[] { ("menu-config", p.MenuConfigId, 16 * 1024 * 1024), ("ui-residency", p.UiConfigId, 512 * 1024), ("completion-config", p.CompletionConfigId, 4 * 1024 * 1024), ("display-config", p.DisplayConfigId, 4 * 1024 * 1024) })
             ConfigBytes(root, category, id, limit);
@@ -179,7 +187,9 @@ public static class PlayableCache
     private static CampaignMapInput Metadata(CampaignRoute map) => new("__cms__/rtx/" + map.Scenario + ".mapinfo", "game/metadata/" + map.MetadataSha256.ToLowerInvariant() + ".mapinfo", map.MetadataSha256);
     public static void Register(PlayableCacheSelection cache, ICampaignRegistry registry, IProgress<IndexProgress> progress, CancellationToken cancellation)
     {
-        var maps = cache.Manifest.Maps;
+        // The native importer retains its input order for the process lifetime.
+        // Match CampaignMetadata.Stage so Prepare -> Play can reuse that import.
+        var maps = cache.Manifest.Maps.OrderBy(x=>Metadata(x).SourcePath,StringComparer.Ordinal).ToArray();
         var actual = registry.Read(maps.Select(Metadata).ToArray(), progress, cancellation);
         if (actual.Length != maps.Length || actual.Where((x, i) => x.MapId != maps[i].MapId || x.Mission != maps[i].Mission || x.Sublevel != maps[i].Sublevel || !x.Modules.AsSpan().SequenceEqual(maps[i].SourceModules)).Any())
             throw new CacheException("CAMPAIGN_CATALOGUE_CHANGED", "Forge returned different campaign metadata. Restart Forge; if this persists, rebuild the cache from the dump.");

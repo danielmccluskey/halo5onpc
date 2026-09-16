@@ -7,6 +7,8 @@ public interface ILauncherSettingsStore
 {
     Task<string?> LoadCampaignDirectoryAsync();
     Task SaveCampaignDirectoryAsync(string directory);
+    Task<bool> LoadKeepRebuildDataAsync() => Task.FromResult(true);
+    Task SaveKeepRebuildDataAsync(bool value) => Task.CompletedTask;
     Task<string?> LoadCacheDirectoryAsync();
     Task SaveCacheDirectoryAsync(string directory);
 }
@@ -18,6 +20,9 @@ public sealed class LauncherSettingsStore(string settingsPath) : ILauncherSettin
 
     public async Task<string?> LoadCampaignDirectoryAsync() => (await LoadAsync()).CampaignDirectory;
     public async Task<string?> LoadCacheDirectoryAsync() => (await LoadAsync()).CacheDirectory;
+
+    public async Task<bool> LoadKeepRebuildDataAsync() => (await LoadAsync()).KeepRebuildData;
+    public async Task SaveKeepRebuildDataAsync(bool value) => await SaveAsync((await LoadAsync()) with { KeepRebuildData=value });
 
     private async Task<Settings> LoadAsync()
     {
@@ -56,5 +61,5 @@ public sealed class LauncherSettingsStore(string settingsPath) : ILauncherSettin
         }
     }
 
-    private sealed record Settings(int SchemaVersion, string? CampaignDirectory, string? CacheDirectory = null);
+    private sealed record Settings(int SchemaVersion, string? CampaignDirectory, string? CacheDirectory = null, bool KeepRebuildData = true);
 }

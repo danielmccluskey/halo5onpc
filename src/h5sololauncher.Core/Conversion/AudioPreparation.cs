@@ -13,11 +13,11 @@ namespace H5SoloLauncher.Core.Conversion;
 public sealed record AudioPreparationRequest(ConversionAuditRequest Conversion, string AssetsId);
 public sealed record AudioPackageProof(string Path, long Length, string TableSha256, long Modified);
 public sealed record PreparedAudioEntry(string Kind, string Id, long Language, string Source, long SourceOffset, int SourceBytes, string SourceSha256,
-    long Offset, int Bytes, string Sha256, int PreservedXma);
+    long Offset, int Bytes, string Sha256, int PreservedXma, int PreservedConvolution = 0);
 public sealed record PreparedAudio(int Format, string Rules, string EffectivePlanId, string AssetsId, string PackageFullName, string Language,
-    string RelativePath, long Bytes, string Sha256, uint[] RequiredBanks, uint[] NativeBanks, AudioPackageProof[] NativePackages, AudioPackageProof[] SourcePackages, PreparedAudioEntry[] Entries);
+    string RelativePath, long Bytes, string Sha256, uint[] RequiredBanks, uint[] NativeBanks, AudioPackageProof[] NativePackages, AudioPackageProof[] SourcePackages, PreparedAudioEntry[] Entries, SourceAudioGap[]? SourceMissingBanks = null);
 public sealed record AudioPreparationResult(string State, string? ManifestId = null, int Banks = 0, int Media = 0, long Bytes = 0, bool Reused = false,
-    int PreservedXma = 0, string? Code = null, string? Message = null, string? Details = null);
+    int PreservedXma = 0, string? Code = null, string? Message = null, string? Details = null, int PreservedConvolution = 0);
 
 public static class AudioPreparation
 {
@@ -67,12 +67,14 @@ public static class AudioPreparation
             }
             var missingBanks = required.Except(nativeBanks).ToHashSet();
             var availableBanks = candidates.Values.Where(x => x.Entry.Kind == "Bank").Select(x => uint.Parse(x.Entry.Id, NumberStyles.HexNumber)).ToHashSet();
-            if (!missingBanks.IsSubsetOf(availableBanks)) throw new CacheException("AUDIO_BANK_MISSING", "The dump is missing required campaign audio banks: " + string.Join(", ", missingBanks.Except(availableBanks).Order()));
+            var sourceGaps=SourceAudioGaps.Resolve(source.PackageVersion,missingBanks.Except(availableBanks).ToArray(),
+                assets.BatchIds.SelectMany(id=>InputFiles.Read<ConvertedAssetBatch>(cache.Root,InputFiles.PathFor("asset-batches",id),32*1024*1024,id).Assets));
+            if(sourceGaps.Length>0)progress.Report(new("Recording original source audio gaps",sourceGaps.Length,sourceGaps.Length,string.Join(", ",sourceGaps.Select(x=>x.Name))));
             var selected = candidates.Where(x => !native.Contains(x.Key) && (x.Key.Kind == "Media" || x.Key.Kind == "Bank" && missingBanks.Contains(uint.Parse(x.Key.Id, NumberStyles.HexNumber))))
                 .Select(x => x.Value).OrderBy(x => x.Entry.Kind, StringComparer.Ordinal).ThenBy(x => x.Entry.Id, StringComparer.Ordinal).ThenBy(x => x.Entry.Language).ToArray();
             if (selected.Any(x => x.Entry.Length is < 12 or > 64 * 1024 * 1024)) throw Invalid("An audio payload exceeds the supported size.");
             var key = InputFiles.Hash(JsonSerializer.SerializeToUtf8Bytes(new { Rules, Converter = AudioConverter.Rules, request.Conversion.EffectivePlanId, request.AssetsId, input.PackageFullName, sourcePlan.Language,
-                Required = required, Native = nativeProof, Source = sourceProof }));
+                Required = required, Native = nativeProof, Source = sourceProof, SourceGaps=sourceGaps, GapRules=SourceAudioGaps.Rules }));
             var relativeOutput = "game/audio/" + key.ToLowerInvariant() + "/campaign.pck"; var destination = SafePaths.Child(cache.Root, relativeOutput);
             var checkpoint = InputFiles.PathFor("audio-checkpoints", key);
             if (File.Exists(destination) && File.Exists(SafePaths.Child(cache.Root, checkpoint)))
@@ -106,7 +108,7 @@ public static class AudioPreparation
                     var original = ReadSource(source.Root, file, entry, sourceProof.Single(x => x.Path == file));
                     var converted = entry.Kind == "Bank" ? converter.Bank(original, uint.Parse(entry.Id, NumberStyles.HexNumber)) : AudioConverter.Wem(original);
                     var offset = Align(output.Position); output.SetLength(offset); output.Position = offset; output.Write(converted.Bytes);
-                    written.Add(new(entry.Kind, entry.Id, entry.Language, file, entry.Offset, original.Length, InputFiles.Hash(original), offset, converted.Bytes.Length, InputFiles.Hash(converted.Bytes), converted.PreservedXma));
+                    written.Add(new(entry.Kind, entry.Id, entry.Language, file, entry.Offset, original.Length, InputFiles.Hash(original), offset, converted.Bytes.Length, InputFiles.Hash(converted.Bytes), converted.PreservedXma, converted.PreservedConvolution));
                 }
                 var header = new byte[headerLength]; "AKPK"u8.CopyTo(header); W(header, 4, (uint)headerLength - 8); W(header, 8, 1); W(header, 12, (uint)languages.Length);
                 W(header, 16, (uint)(4 + 20 * banks)); W(header, 20, (uint)(4 + 20 * media)); W(header, 24, 4); languages.CopyTo(header, 28);
@@ -146,7 +148,7 @@ public static class AudioPreparation
                 if (read.FileLength != proof.Length || read.LastWriteFileTime != proof.Modified) throw Changed();
             }
             var manifest = new PreparedAudio(1, Rules, request.Conversion.EffectivePlanId, request.AssetsId, input.PackageFullName, sourcePlan.Language,
-                relativeOutput, bytes, digest, required, required.Intersect(nativeBanks).Order().ToArray(), nativeProof.ToArray(), sourceProof.ToArray(), written.ToArray());
+                  relativeOutput, bytes, digest, required, required.Intersect(nativeBanks).Order().ToArray(), nativeProof.ToArray(), sourceProof.ToArray(), written.ToArray(), sourceGaps);
             cancellation.ThrowIfCancellationRequested(); File.Move(temporary, destination, true); temporary = null;
             InputFiles.Write(cache.Root, checkpoint, JsonSerializer.SerializeToUtf8Bytes(manifest));
             return Complete(manifest, InputFiles.Save(cache.Root, "audio-manifests", manifest), false);
@@ -156,7 +158,7 @@ public static class AudioPreparation
         finally { if (temporary is not null && File.Exists(temporary)) File.Delete(temporary); }
     }
     private static AudioPreparationResult Complete(PreparedAudio value, string id, bool reused) => new("Prepared", id, value.Entries.Count(x => x.Kind == "Bank"), value.Entries.Count(x => x.Kind == "Media"), value.Bytes, reused,
-        value.Entries.Sum(x => x.PreservedXma), Message: "Campaign audio built and verified.");
+        value.Entries.Sum(x => x.PreservedXma), Message: "Campaign audio built and verified.", PreservedConvolution: value.Entries.Sum(x=>x.PreservedConvolution));
     private static byte[] ReadSource(string root, string file, AudioEntry entry, AudioPackageProof proof)
     {
         var path = SafePaths.Child(root, file); using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -176,7 +178,13 @@ public static class AudioPreparation
                 if (tag.Blocks.Length != 2 || tag.Blocks[0].Size != 64 || tag.Blocks[1].Size == 0 || tag.Blocks[1].Size % 4 != 0) throw Invalid("A sound-bank tag has an unsupported layout.");
                 var name = Path.GetFileNameWithoutExtension(asset.Name.Replace('\\', '/')).ToLowerInvariant(); uint hash = 2166136261;
                 foreach (var c in Encoding.UTF8.GetBytes(name)) hash = unchecked(hash * 16777619) ^ c;
-                if (U(tag.Block(0), 56) != hash) throw Invalid("A sound-bank tag failed its name identity check.");
+                // This shipped Before the Storm tag retains a bank ID that differs from
+                // its filename hash. The referenced 6de0d5f8 bank exists in the source
+                // SFX package. Accept only the reviewed payload; do not rename its ID.
+                if (name == "sb_120_mus_campaign_campsite_return" &&
+                    asset.Sha256 == "0920B2900D5D5D43B5805FDEA49482653A1072BBEC8D12206672492440D8736C")
+                    hash = 0x6de0d5f8;
+                if (U(tag.Block(0), 56) != hash) throw Invalid($"Sound-bank {asset.Name} ({batch.SourceFile}, item {asset.Item}) has identity {U(tag.Block(0), 56):x8}, expected {hash:x8} from its name.");
                 var found = false; var ids = tag.Block(1);
                 for (var at = 0; at < ids.Length; at += 4) { var bank = U(ids, at); required.Add(bank); if (bank == hash) found = true; }
                 if (!found) throw Invalid("A sound-bank tag omits its own bank identity.");

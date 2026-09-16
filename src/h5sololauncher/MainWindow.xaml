@@ -26,7 +26,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="0,0,8,12">
                 <TextBlock Text="h5sololauncher" FontSize="24" Margin="0,0,0,4" />
-                <TextBlock Text="Osiris and Blue Team" Margin="0,0,0,20" />
+                <TextBlock Text="Osiris through Guardians" Margin="0,0,0,20" />
                 <TextBlock Text="{Binding Status}" FontSize="15" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
                 <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="12" Margin="0,4,0,12" />
                 <ProgressBar Height="3" IsIndeterminate="True" Visibility="{Binding IsChecking, Converter={StaticResource VisibleWhenTrue}}" AutomationProperties.Name="Checking Forge" />
@@ -48,6 +48,7 @@
                 <TextBlock Text="{Binding Campaign.Status}" TextWrapping="Wrap" Margin="0,4,0,4" />
                 <TextBlock Text="{Binding Campaign.Message}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,16" />
                 <ProgressBar Height="3" IsIndeterminate="True" Visibility="{Binding Campaign.IsChecking, Converter={StaticResource VisibleWhenTrue}}" AutomationProperties.Name="Checking campaign dump" />
+                <CheckBox Content="Keep rebuild data (faster future preparation)" IsChecked="{Binding Cache.KeepRebuildData}" IsEnabled="{Binding Cache.CanChoose}" Margin="0,0,0,8" ToolTip="Old game outputs are cleaned automatically. Uncheck to also remove conversion intermediates after rebuilding; the dump will be needed to regenerate them." />
                 <TextBlock Text="{Binding Cache.PreparationStatus}" FontSize="16" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
                 <TextBlock Text="{Binding Cache.PreparationMessage}" Margin="0,6,0,12" TextWrapping="Wrap" />
                 <ProgressBar Height="5" Minimum="0" Maximum="100" Value="{Binding Cache.Percent, Mode=OneWay}" IsIndeterminate="{Binding Cache.IsIndeterminate}"

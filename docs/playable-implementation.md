@@ -1,4 +1,11 @@
-Current update: **0.9 adds dump-independent cache playback**. Choose a complete
+Current update: **0.11 adds Meridian Station, Unconfirmed and Evacuation preparation**. See
+[Meridian Station implementation and validation](meridian-station-implementation.md).
+
+Previous update: **0.10 adds Glassed preparation**. On 14 September the user
+confirmed Osiris and Blue Team working in h5sololauncher, superseding the older
+unverified baseline below. See [Glassed implementation and validation](glassed-implementation.md).
+
+Previous update: **0.9 adds dump-independent cache playback**. Choose a complete
 cache and Play; the source is optional for building or repairing. See
 [portable cache implementation and validation](portable-cache.md). The gameplay
 validation limitations below still apply; portability tests do not establish

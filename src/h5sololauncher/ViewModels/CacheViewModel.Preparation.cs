@@ -8,6 +8,7 @@ namespace H5SoloLauncher.ViewModels;
 
 public sealed partial class CacheViewModel
 {
+    public bool KeepRebuildData { get; set; } = true;
     private PreparationResult? preparation;
     private CampaignPlayResult? playResult;
     private string? preparedId;
@@ -26,7 +27,7 @@ public sealed partial class CacheViewModel
     {
         "Paused" => "Preparation paused.", "Failed" => "Preparation needs attention.",
         "Ready" => "Ready to play.",
-        _ => preparedId is null?"Prepare Osiris and Blue Team.":"Ready to play."
+        _ => preparedId is null?"Prepare Osiris through Guardians.":"Ready to play."
     };
     public string PreparationMessage => IsPreparing || IsPlaying
         ? (progress?.Total > 0 ? $"{progress.Completed:N0} / {progress.Total:N0}\n{progress.File}" : progress?.File ?? "Completed stages are kept if you pause.")
@@ -35,7 +36,7 @@ public sealed partial class CacheViewModel
         $"Plan: {preparation.PlanId}\nNative modules: {preparation.NativeModuleId}\nNative schemas: {preparation.NativeSchemaId}\nEffective plan: {preparation.EffectivePlanId}\n" +
         $"Selected tags: {preparation.Tags}\nUnresolved identities: {preparation.Unresolved}\nPrepared cache: {preparation.PreparedId}\nError: {preparation.Code}\n{preparation.Details}\n";
     public string PlayDetails => $"Prepared cache: {preparedId}\n"+(playResult is null ? "" : $"Campaign startup: {playResult.State}\nStage: {playResult.Phase}\n{playResult.Message}\nProcess: {playResult.ProcessId}\nError: {playResult.Code}\n{playResult.Details}\n");
-    private PrepareRequest Locations()=>new(source,Directory,forge,forgePackage,string.IsNullOrEmpty(SelectedLanguage)?"English(US)":SelectedLanguage);
+    private PrepareRequest Locations()=>new(source,Directory,forge,forgePackage,string.IsNullOrEmpty(SelectedLanguage)?"English(US)":SelectedLanguage,KeepRebuildData);
     private void ClearPrepared(){readyRevision++;preparation=null;playResult=null;preparedId=null;}
     private async Task LoadPreparedAsync()
     {
@@ -98,6 +99,7 @@ public sealed partial class CacheViewModel
         ClearPrepared();stop = new(); IsBusy = true; IsPreparing = true; IsStopping = false; notice = string.Empty; preparation = null; progress = null; Refresh();
         try
         {
+            await settings.SaveKeepRebuildDataAsync(KeepRebuildData);
             preparation = await ((IPreparationWorker)worker).PrepareAsync(Locations(),
                 new Progress<IndexProgress>(value => { progress = value; Refresh(); }), stop.Token);
             if(preparation.State=="Ready")preparedId=preparation.PreparedId;

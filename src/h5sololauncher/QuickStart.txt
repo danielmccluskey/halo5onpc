@@ -1,12 +1,19 @@
-h5sololauncher 0.9.1 preview
+h5sololauncher 0.12.0 preview
 
 Open h5sololauncher.exe. Keep this entire folder together.
+0.12.0 adds preparation for all 15 campaign missions.
+Restart Forge after updating and expand your cache to add its content.
 
 Choose an existing complete cache and click Play. No campaign dump is needed.
 To build or repair a cache, choose your extracted Halo 5: Guardians dump and a
 cache destination, then click Prepare & play. Setup runs automatically.
 Next time, click Play. There is no timed Continue or Solo click during setup.
-In Solo, choose Osiris or Blue Team, a difficulty and Start New Mission.
+New caches include all 15 missions through Guardians, including their connecting
+cinematics. In Solo, choose an available mission, a difficulty and Start New Mission.
+
+To add the remaining missions to an older cache, choose the extracted dump, then use
+Options and diagnostics > Prepare cache only. Existing prepared caches
+still play without the dump; updating the launcher alone does not add game assets.
 
 Pause keeps completed preparation stages. Stop monitoring and closing the
 launcher leave Forge running. Options and diagnostics contains Prepare cache only
@@ -21,7 +28,10 @@ Game files are not included. Copy the whole cache when moving to another PC,
 then select its new location. Paths and Forge read permissions update automatically.
 Complete 0.8 caches upgrade automatically; an index-only cache cannot be played.
 
-Validation status: automatic startup and a rendered Osiris starting scene have
-been checked. Player controls, Blue Team and the onward mission transition have
-not been verified in this build. This preview is not a fully validated replacement
-for the old launcher. No later campaign missions are prepared by this release.
+Osiris and Blue Team are user-verified. See docs/glassed-implementation.md in the
+source repository for the Glassed validation record and docs/meridian-station-implementation.md
+for the earlier expansion. The full campaign is awaiting bulk gameplay testing.
+
+Old game outputs are cleaned after successful preparation when Forge is closed.
+Keep rebuild data retains conversion inputs for future preparation; clearing it
+removes those intermediates while preserving the playable cache.

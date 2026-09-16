@@ -12,20 +12,22 @@ A small hobby project to get the **Halo 5: Guardians campaign running on PC** us
 
 1. Download a build from this repository's **Releases** and extract the ZIP.
 2. Open `h5sololauncher.exe`. Choose your extracted dump and a cache destination, then click **Prepare & play**. If you already have a complete cache, select it and click **Play**.
-3. In Solo, choose Osiris or Blue Team and start your mission.
+3. In Solo, choose an available mission and start your mission. New caches include all fifteen missions through Guardians.
 
 A complete cache does not need the original dump to play. English (US) is currently supported.
+
+To add the remaining campaign missions to an existing cache, select the extracted dump and use **Options and diagnostics > Prepare cache only**. Updating the launcher alone does not add mission assets. See the [Full-campaign preparation record](docs/full-campaign-implementation.md).
 
 ## Preview and status
 
 [![Halo 5 Campaign on PC - First two missions](https://img.youtube.com/vi/g_5H8P4LFNY/maxresdefault.jpg)](https://www.youtube.com/watch?v=g_5H8P4LFNY)
 
-At the moment I have the first two campaign missions running through the old launcher:
+The first two campaign missions are verified in h5sololauncher:
 
 * **Osiris**
 * **Blue Team**
 
-There is still a lot to work out, but they're properly running and playable, which is further than I expected to get when I started messing with this. The new launcher is still being tested through both missions.
+There is still a lot to work out, but they're properly running and playable, which is further than I expected to get when I started messing with this. Version 0.12.0 prepares the campaign through Guardians; the additional missions are awaiting bulk gameplay testing.
 
 ## Fair warning
 

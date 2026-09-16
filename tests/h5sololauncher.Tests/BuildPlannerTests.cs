@@ -12,10 +12,47 @@ namespace H5SoloLauncher.Tests;
 public sealed class BuildPlannerTests
 {
     [Fact]
+    public void DefaultBundleIncludesTheWholeCampaign()
+    {
+        using var f=new PlanFixture();
+        var plan=f.Read(f.Run());
+        Assert.Equal("full-campaign",plan.Bundle.Id);
+        Assert.Equal(19,plan.Bundle.Scenarios.Length);
+        Assert.Equal(new[]{"w1_miningtown","w1_unconfirmed_reports","w1_evacuation"},
+            plan.Bundle.Scenarios.Skip(5).Take(3).Select(x=>x.Split('/').Last()));
+        Assert.Contains(plan.Bundle.Scenarios,x=>x.Contains("cin_110"));
+        Assert.EndsWith("w3_innerworld/w3_innerworld",plan.Bundle.Scenarios.Last());
+    }
+    [Fact]
+    public void MeridianStationExpansionPreservesTheGlassedPlan()
+    {
+        using var f=new PlanFixture();
+        var previous=new BuildPlanner().Run(f.Request with {BundleId="first-three-missions"},new PlanFixture.Callback(_=>{}),default);
+        Assert.Equal("Planned",previous.State);
+        var expanded=new BuildPlanner().Run(f.Request with {BundleId="first-four-missions"},new PlanFixture.Callback(_=>{}),default); var plan=f.Read(expanded);
+        Assert.Equal("first-four-missions",expanded.Summary!.BundleId);
+        Assert.NotEqual(previous.Summary!.PlanId,expanded.Summary.PlanId);
+        Assert.Contains(plan.Tags,x=>x.Root && x.Name=="levels\\campaignworld010\\w1_miningtown\\w1_miningtown.scenario");
+        Assert.Equal(6,plan.Bundle.Scenarios.Length);
+        Assert.True(File.Exists(Path.Combine(f.Files.Cache,previous.Summary.RelativePath)));
+    }
+    [Fact]
+    public void ExpandingAnOldBundleChangesThePlanAndIncludesGlassedOpening()
+    {
+        using var f=new PlanFixture();
+        var previous=new BuildPlanner().Run(f.Request with {BundleId="first-two-missions"},new PlanFixture.Callback(_=>{}),default);
+        Assert.Equal("Planned",previous.State);Assert.Equal(4,previous.Summary!.Tags);
+        var expanded=f.Run();var plan=f.Read(expanded);
+        Assert.NotEqual(previous.Summary.PlanId,expanded.Summary!.PlanId);
+        Assert.Contains(plan.Tags,x=>x.Root&&x.Name=="levels\\cinematics\\cin_060\\cin_060.scenario");
+        Assert.Contains(plan.Tags,x=>x.Root&&x.Name=="levels\\campaignworld010\\w1_meridian\\w1_meridian.scenario");
+        Assert.True(File.Exists(Path.Combine(f.Files.Cache,previous.Summary.RelativePath)));
+    }
+    [Fact]
     public void ResolvesExactDependenciesAndCyclesWithoutNativeCaptures()
     {
         using var f = new PlanFixture(); var result = f.Run(); Assert.Equal("Planned", result.State);
-        var plan = f.Read(result); Assert.Equal(4, plan.Tags.Length); Assert.Empty(plan.Issues);
+        var plan = f.Read(result); Assert.Equal(ContentBundles.Get(f.Request.BundleId).Scenarios.Length + 1, plan.Tags.Length); Assert.Empty(plan.Issues);
         Assert.Contains(plan.Tags, x => x.Identity == PlanFixture.Model && !x.Root);
         Assert.All(plan.Tags, x => Assert.Equal(64, x.PayloadSha256.Length));
         Assert.All(plan.Inputs, x => Assert.False(Path.IsPathRooted(x.Path)));
@@ -129,7 +166,7 @@ public sealed class BuildPlannerTests
         using var f = new PlanFixture();
         var worker = new IndexWorkerClient(Environment.GetEnvironmentVariable("H5SOLO_TEST_WORKER"));
         var result = await worker.PlanAsync(f.Request, new PlanFixture.Callback(_ => { }), default);
-        Assert.Equal("Planned", result.State); Assert.Equal(4, result.Summary!.Tags);
+        Assert.Equal("Planned", result.State); Assert.Equal(ContentBundles.Get(f.Request.BundleId).Scenarios.Length + 1, result.Summary!.Tags);
     }
 
     [Fact]

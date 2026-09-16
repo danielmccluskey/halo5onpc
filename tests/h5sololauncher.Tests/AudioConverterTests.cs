@@ -9,6 +9,16 @@ namespace H5SoloLauncher.Tests;
 
 public sealed class AudioConverterTests
 {
+    [Fact]
+    public void SourceGapsRequireTheReviewedVersionNameAndTagHash()
+    {
+        var tag=new ConvertedAsset(0,"sound/901_soundbanks/001_vo/001_vo_scr/sb_001_vo_scr_w1hub.soundbank",[],[],0,0,"8D5A9EE40A1F364F7FF90E174EA3A5897F6CD4C0FCCF11DF59393B4CD16B0F8E","NativeLayout");
+        Assert.Equal(3383643097u,Assert.Single(SourceAudioGaps.Resolve("1.1.31695.21",[3383643097],[tag])).Id);
+        Assert.Throws<CacheException>(()=>SourceAudioGaps.Resolve("1.1.31695.22",[3383643097],[tag]));
+        Assert.Throws<CacheException>(()=>SourceAudioGaps.Resolve("1.1.31695.21",[3383643097],[tag with {Sha256=new string('0',64)}]));
+        Assert.Throws<CacheException>(()=>SourceAudioGaps.Resolve("1.1.31695.21",[3383643097],[tag with {Name="unrelated.soundbank"}]));
+        Assert.Throws<CacheException>(()=>SourceAudioGaps.Resolve("1.1.31695.21",[123],[tag]));
+    }
     [Theory]
     [InlineData(0xffff, 2, 3)]
     [InlineData(0xfffe, 1, 4)]

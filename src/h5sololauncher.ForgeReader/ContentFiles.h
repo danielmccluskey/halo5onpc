@@ -50,7 +50,7 @@ inline void parse(const std::vector<unsigned char>& bytes) {
     wchar_t imagePath[32768];auto length=GetModuleFileNameW(nullptr,imagePath,32768);require(length>0 && length<32768,"Forge's installation path is unavailable.");
     std::wstring root=imagePath;root.resize(root.find_last_of(L'\\'));
     require(_wcsnicmp(root.c_str(),cache.c_str(),root.size())!=0,"Generated content must be outside the Forge installation.");
-    auto count=input.number<uint32_t>();require(count>0 && count<=512,"The runtime file count is unsupported.");
+    auto count=input.number<uint32_t>();require(count>0 && count<=1024,"The runtime file count is unsupported.");
     std::set<std::wstring> names;
     for(unsigned i=0;i<count;++i) {
         auto name=input.string(),target=input.string();

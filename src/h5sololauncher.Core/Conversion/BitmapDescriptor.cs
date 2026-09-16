@@ -8,6 +8,7 @@ public sealed record BitmapDescriptor(int Width, int Height, int Depth, int Kind
     public int Slices => Kind == 2 ? 6 : Depth;
     public (int Dxgi, int Bytes, int Block) FormatInfo => Format switch
     {
+        32 => (56, 2, 1), // L16: R16_UNORM; preserve the original 16-bit samples.
         3 => (49, 2, 1), 24 => (2, 16, 1), 1 or 2 => (61, 1, 1), 11 => (87, 4, 1),
         14 => (71, 8, 4), 16 => (77, 16, 4), 25 => (10, 8, 1), 36 or 43 => (80, 8, 4),
         39 => (84, 16, 4), 45 => (83, 16, 4), 47 => (95, 16, 4), 49 => (98, 16, 4), 51 => (26, 4, 1),

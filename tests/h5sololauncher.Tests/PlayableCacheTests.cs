@@ -14,6 +14,27 @@ namespace H5SoloLauncher.Tests;
 
 public sealed class PlayableCacheTests
 {
+    [Theory]
+    [InlineData(3)]
+    [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(8)]
+    [InlineData(19)]
+    public void SealedAndLegacyCachesAcceptAllSupportedCampaignBundles(int available)
+    {
+        using var f=new Fixture(available);
+        Assert.Equal(available,PlayableCache.Open(f.Root,"",Fixture.Package).Manifest.Maps.Count(x=>x.Available));
+        f.MakeLegacy();
+        Assert.Equal(available,PlayableCache.Open(f.Root,"",Fixture.Package).Manifest.Maps.Count(x=>x.Available));
+    }
+    [Fact]
+    public void RejectsAnIncompleteGlassedBundleOrAReplacedScenario()
+    {
+        using var f=new Fixture(4);
+        Assert.Throws<CacheException>(()=>PlayableCache.Open(f.Root,"",Fixture.Package));
+        f.Manifest=f.Manifest with {Maps=f.Manifest.Maps.Select((m,i)=>i==4?m with {Available=true,Scenario="levels/unprepared"}:m).ToArray()};f.Seal();
+        Assert.Throws<CacheException>(()=>PlayableCache.Open(f.Root,"",Fixture.Package));
+    }
     [Fact]
     public void MovedCacheWithoutDumpIndexOrOldManifestsResolvesNewPaths()
     {
@@ -82,6 +103,7 @@ public sealed class PlayableCacheTests
         using var registry = new Registry(f.Manifest.Maps);
         PlayableCache.Register(cache, registry, new Progress<IndexProgress>(), default);
         Assert.All(registry.Inputs!, x => Assert.True(File.Exists(Path.Combine(f.Root, x.CachePath))));
+        Assert.Equal(registry.Inputs!.Select(x=>x.SourcePath).Order(StringComparer.Ordinal),registry.Inputs.Select(x=>x.SourcePath));
         registry.Wrong = true;
         Assert.Equal("CAMPAIGN_CATALOGUE_CHANGED", Assert.Throws<CacheException>(() => PlayableCache.Register(cache, registry, new Progress<IndexProgress>(), default)).Code);
     }
@@ -151,7 +173,7 @@ public sealed class PlayableCacheTests
     {
         public CampaignMapInput[]? Inputs; public bool Wrong;
         public CampaignMapMetadata[] Read(CampaignMapInput[] inputs, IProgress<IndexProgress> progress, CancellationToken cancellation)
-        { Inputs = inputs; return maps.Select(x => new CampaignMapMetadata(x.MapId + (Wrong ? 1u : 0u), x.Mission, x.Sublevel, x.SourceModules)).ToArray(); }
+        { Inputs = inputs; return inputs.Select(input=>maps.Single(x=>"__cms__/rtx/"+x.Scenario+".mapinfo"==input.SourcePath)).Select(x => new CampaignMapMetadata(x.MapId + (Wrong ? 1u : 0u), x.Mission, x.Sublevel, x.SourceModules)).ToArray(); }
         public void Dispose() { }
     }
     private sealed class Worker : IIndexWorker, IPreparationWorker, ICampaignPlayWorker
@@ -176,7 +198,7 @@ public sealed class PlayableCacheTests
         { var bytes = JsonSerializer.SerializeToUtf8Bytes(value); var id = Hash(bytes); Write("inputs/" + category + "/" + id.ToLowerInvariant() + ".json", bytes); return id; }
         public void Seal()
         { var id = Save("playable-manifests", Manifest); Write("playable.json", JsonSerializer.SerializeToUtf8Bytes(new { Id = id })); }
-        public Fixture()
+        public Fixture(int available=3)
         {
             Directory.CreateDirectory(owned); Root = CacheFolders.Select(owned, Source, "").Root;
             CampaignFile FileEntry(string original, string name)
@@ -197,7 +219,8 @@ public sealed class PlayableCacheTests
             var maps = Enumerable.Range(0, 19).Select(i =>
             {
                 var bytes = Encoding.UTF8.GetBytes("metadata " + i); var sha = Hash(bytes); Write("game/metadata/" + sha.ToLowerInvariant() + ".mapinfo", bytes);
-                return new CampaignRoute((uint)i, i, 0, (uint)(i + 1), "levels/mission" + i, sha, modules, modules, [files[0].OriginalPath], i < 3);
+                var scenarios=H5SoloLauncher.Core.Planning.ContentBundles.Get("full-campaign").Scenarios;
+                return new CampaignRoute((uint)i, i-scenarios.Take(i).Count(x=>x.Contains("/cinematics/")), i>0 && scenarios[i-1].Contains("/cinematics/") ? 1 : 0, (uint)(i + 1), i<scenarios.Length?scenarios[i]:"levels/mission"+i, sha, modules, modules, [files[0].OriginalPath], i < available);
             }).ToArray();
             Manifest = new(1, "English(US)", prepared, maps, files, movie); Seal();
         }

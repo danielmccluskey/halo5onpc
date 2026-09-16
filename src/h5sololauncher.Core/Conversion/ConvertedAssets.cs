@@ -31,6 +31,7 @@ public static class ConvertedAssets
             if (plan.SourcePlanId != input.PlanId || plan.InputFingerprint != catalog.Fingerprint || plan.Rules != EffectivePlanBuilder.Rules) throw InputFiles.Damaged();
             var schemas = InputFiles.Read<NativeSchemaSnapshot>(cache.Root, InputFiles.PathFor("native-schemas", plan.SchemaId), 4 * 1024 * 1024, plan.SchemaId);
             var converter = new StructuralConverter(schemas); var files = catalog.Files.ToDictionary(x => x.Path);
+            var chiefAnimation = ChiefAnimationCompatibility.Load(cache.Root, plan, cancellation);
             List<string> batches = []; long bytes = 0;
             foreach (var group in plan.Tags.GroupBy(x => x.File).OrderBy(x => x.Key, StringComparer.Ordinal))
             {
@@ -38,6 +39,8 @@ public static class ConvertedAssets
                 var path = SafePaths.Child(source.Root, group.Key); var metadata = FileMetadata.Read(path, "Module", cancellation);
                 if (metadata.Digest != files[group.Key].Digest || metadata.FileLength != files[group.Key].Length) throw new CacheException("DUMP_CHANGED", "A source module changed after indexing.");
                 var key = InputFiles.Hash(JsonSerializer.SerializeToUtf8Bytes(new { Rules, Plan = request.EffectivePlanId, File = group.Key, metadata.Digest }));
+                if (chiefAnimation is not null && group.Any(ChiefAnimationCompatibility.AppliesTo))
+                    key = InputFiles.Hash(JsonSerializer.SerializeToUtf8Bytes(new { InputKey = key, AnimationRules = ChiefAnimationCompatibility.Rules }));
                 var checkpoint = InputFiles.PathFor("asset-checkpoints", key);
                 ConvertedAssetBatch? batch = null;
                 if (File.Exists(SafePaths.Child(cache.Root, checkpoint)))
@@ -60,7 +63,17 @@ public static class ConvertedAssets
                         cancellation.ThrowIfCancellationRequested(); current = group.Key + " / item " + tag.Item;
                         var entry = metadata.Entry(tag.Item); var payload = ModulePayloadReader.Read(stream, metadata, entry, cancellation);
                         if (payload.Sha256 != tag.Sha256) throw new CacheException("DUMP_CHANGED", "A source tag changed after selecting campaign layers.");
-                        var document = new TagDocument(payload.Bytes); var converted = converter.Convert(tag.Identity.Group, document);
+                        var compatibleChief = chiefAnimation is not null && ChiefAnimationCompatibility.AppliesTo(tag);
+                        var tagBytes = payload.Bytes;
+                        if (compatibleChief)
+                        {
+                            if (entry.ResourceCount != 1) throw new CacheException("CHIEF_ANIMATION_COMPATIBILITY", "Chief's campaign graph has an unsupported local resource layout.");
+                            var localResource = metadata.Entry(metadata.Resource(entry.ResourceIndex));
+                            if (localResource.Parent != entry.Index || localResource.ResourceCount != 0)
+                                throw new CacheException("CHIEF_ANIMATION_COMPATIBILITY", "Chief's campaign animation resource has an unsupported owner or children.");
+                            tagBytes = chiefAnimation!.Replace(payload.Bytes, ModulePayloadReader.ReadResource(stream, metadata, localResource, cancellation).Bytes);
+                        }
+                        var document = new TagDocument(tagBytes); var converted = converter.Convert(tag.Identity.Group, document);
                         int[] Children(ModuleEntry value) => Enumerable.Range(value.ResourceIndex, value.ResourceCount).Select(metadata.Resource).ToArray();
                         void Add(ModuleEntry value, byte[]? data, string method)
                         {
@@ -68,7 +81,7 @@ public static class ConvertedAssets
                             if (data is null && (value.StoredSize != 0 || value.LogicalSize != 0)) throw new CacheException("RESOURCE_STRIPPED_INVALID", "An empty resource still declares stored or logical bytes.");
                             writer.Add(value, Children(value), data, method);
                         }
-                        Add(entry, converted.Bytes, converted.Method);
+                        Add(entry, converted.Bytes, compatibleChief ? "NativeChiefAnimationGraph" : converted.Method);
                         if (tag.Identity.Group == "bitm" && document.Metadata.Schema == BitmapConverter.SourceTagSchema)
                         {
                             var children = Children(entry);

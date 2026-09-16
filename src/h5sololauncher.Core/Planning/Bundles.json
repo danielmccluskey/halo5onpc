@@ -1,5 +1,71 @@
 [
   {
+    "Id": "full-campaign",
+    "Revision": 1,
+    "Title": "Full campaign: Osiris through Guardians",
+    "Scenarios": [
+      "levels/campaignworld030/w3_halsey/w3_halsey",
+      "levels/cinematics/cin_030/cin_030",
+      "levels/campaignworld040/w4_station/w4_station",
+      "levels/cinematics/cin_060/cin_060",
+      "levels/campaignworld010/w1_meridian/w1_meridian",
+      "levels/campaignworld010/w1_miningtown/w1_miningtown",
+      "levels/campaignworld010/w1_unconfirmed_reports/w1_unconfirmed_reports",
+      "levels/campaignworld010/w1_evacuation/w1_evacuation",
+      "levels/cinematics/cin_110/cin_110",
+      "levels/campaignworld030/w3_builder/w3_builder",
+      "levels/cinematics/cin_120/cin_120",
+      "levels/campaignworld020/w2_grotto/w2_grotto",
+      "levels/campaignworld020/w2_campsite/w2_campsite",
+      "levels/campaignworld020/w2_plateau/w2_plateau",
+      "levels/campaignworld020/w2_campsite_return/w2_campsite_return",
+      "levels/campaignworld020/w2_tsunami/w2_tsunami",
+      "levels/campaignworld030/w3_arrival/w3_arrival",
+      "levels/campaignworld030/w3_citadel/w3_citadel",
+      "levels/campaignworld030/w3_innerworld/w3_innerworld"
+    ]
+  },
+  {
+    "Id": "first-six-missions",
+    "Revision": 1,
+    "Title": "Osiris through Evacuation",
+    "Scenarios": [
+      "levels/campaignworld030/w3_halsey/w3_halsey",
+      "levels/cinematics/cin_030/cin_030",
+      "levels/campaignworld040/w4_station/w4_station",
+      "levels/cinematics/cin_060/cin_060",
+      "levels/campaignworld010/w1_meridian/w1_meridian",
+      "levels/campaignworld010/w1_miningtown/w1_miningtown",
+      "levels/campaignworld010/w1_unconfirmed_reports/w1_unconfirmed_reports",
+      "levels/campaignworld010/w1_evacuation/w1_evacuation"
+    ]
+  },
+  {
+    "Id": "first-four-missions",
+    "Revision": 1,
+    "Title": "Osiris, Blue Team, Glassed and Meridian Station",
+    "Scenarios": [
+      "levels/campaignworld030/w3_halsey/w3_halsey",
+      "levels/cinematics/cin_030/cin_030",
+      "levels/campaignworld040/w4_station/w4_station",
+      "levels/cinematics/cin_060/cin_060",
+      "levels/campaignworld010/w1_meridian/w1_meridian",
+      "levels/campaignworld010/w1_miningtown/w1_miningtown"
+    ]
+  },
+  {
+    "Id": "first-three-missions",
+    "Revision": 1,
+    "Title": "Osiris, Blue Team and Glassed",
+    "Scenarios": [
+      "levels/campaignworld030/w3_halsey/w3_halsey",
+      "levels/cinematics/cin_030/cin_030",
+      "levels/campaignworld040/w4_station/w4_station",
+      "levels/cinematics/cin_060/cin_060",
+      "levels/campaignworld010/w1_meridian/w1_meridian"
+    ]
+  },
+  {
     "Id": "first-two-missions",
     "Revision": 1,
     "Title": "Osiris and Blue Team",

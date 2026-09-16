@@ -38,7 +38,14 @@ internal static class CampaignPreparation
             var ready=new PreparedCampaign(1,PreparedCampaignStore.Rules,"",input.PackageFullName,input.PlanId,effectiveId,assets.ManifestId!,shaders.ManifestId!,modules.ManifestId!,audio.ManifestId!,catalogue.ManifestId!,sources.ManifestId!,artwork.ManifestId!,menu.ConfigId!,ui.ConfigId!,movie.ConfigId!,completion.ConfigId!,display);
             cancellation.ThrowIfCancellationRequested();var legacyId=PreparedCampaignStore.Save(input,ready);
             Begin("Finishing the portable cache");var id=PlayableCache.Publish(input,legacyId,cancellation).Id;
-            return new("Ready","Ready","Osiris and Blue Team are prepared. Play will set up Forge and open Solo automatically.",PreparedId:id);
+            var cleanup="";
+            try
+            {
+                CacheCleanup.Schedule(input.CacheRoot,input.KeepRebuildData);
+                cleanup="Old cache cleanup is scheduled for the next Play after Forge closes.";
+            }
+            catch(Exception error) { cleanup="Cache is ready; cleanup could not be scheduled: " + error.Message; }
+            return new("Ready","Ready","The campaign through Guardians is prepared. " + cleanup,PreparedId:id);
         }
         catch(OperationCanceledException){return new("Paused",phase,"Preparation paused. Completed stages were kept.");}
         catch(PreparationFailure error){return new("Failed",phase,error.Message,error.Code,error.Details);}

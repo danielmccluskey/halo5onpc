@@ -108,7 +108,7 @@ public static class ShaderProgram
                 var replacement = max3 ? Max3(v, scratch) : Fetch(v, scratch);
                 changes.Add(new(instruction.Offset, instruction.Opcode, v, replacement)); output.AddRange(replacement);
             }
-            if (fetch && (changes.Count is not (4 or 5) || changes[0].Opcode != 250 || changes[1].Opcode != 247)) throw Invalid("Explicit-fetch shader doesn't match a verified instruction sequence.");
+            if (fetch && (changes.Count is not (4 or 5 or 6) || changes[0].Opcode != 250 || changes[1].Opcode != 247 || changes.Skip(2).Any(x=>x.Opcode!=355))) throw Invalid("Explicit-fetch shader doesn't match a verified instruction sequence: " + string.Join(", ",changes.Select(x=>x.Opcode)));
             output[1] = (uint)output.Count; result = Words(output);
             if (Instructions(result).Instructions.Any(x => !Standard(x.Opcode))) throw Invalid("Translated shader still contains unsupported instructions.");
         }
@@ -139,16 +139,21 @@ public static class ShaderProgram
         }
         if (op != 355 || v.Length != 14 || !v.AsSpan(0, 3).SequenceEqual(new uint[] { 0x8e000163, 0x800002c2, 0x199983 })) throw Invalid("Unverified formatted buffer fetch.");
         var d = v[3]; var di = v[4]; var address = v[5]; var ai = v[6]; var resource = v[7]; var format = v[10]; var mask = (d >> 4) & 15;
-        if (d is not (0x100032 or 0x100072) || di >= scratch || ai >= scratch || address is not (0x10000a or 0x10001a or 0x10003a) || v[8] != 4 || v[9] != 0x4002 ||
-            v[11] != format || v[12] != format || v[13] != format || (format, mask, resource) is not ((12, 7, 0x107246) or (5, 3, 0x107046) or (9, 7, 0x107246))) throw Invalid("Unverified buffer format, register or mask.");
+        if (d is not (0x100032 or 0x100052 or 0x100072 or 0x1000f2) || di >= scratch || ai >= scratch || address is not (0x10000a or 0x10001a or 0x10002a or 0x10003a) || v[8] != 4 || v[9] != 0x4002 ||
+            v[11] != format || v[12] != format || v[13] != format || (format, mask, resource) is not ((12, 7, 0x107246) or (5, 3, 0x107046) or (5, 5, 0x107106) or (9, 7, 0x107246) or (9, 15, 0x107e46))) throw Invalid("Unverified buffer format, register or mask: " + string.Join(" ",v.Select(x=>x.ToString("x8"))) + $"; temporaries={scratch}.");
         static uint[] Dest(uint reg, uint mask) => [0x100002 | (mask << 4), reg];
         static uint[] Src(uint reg, uint swizzle) => [0x100006 | (swizzle << 4), reg];
         static uint[] Imm(params uint[] values) => [0x4002, ..values];
         static uint[] Inst(uint opcode, params uint[][] args) { var words = args.SelectMany(x => x).ToArray(); return [((uint)(words.Length + 1) << 24) | opcode, ..words]; }
         var width = format == 9 ? 10u : 16u; var scale = BitConverter.SingleToUInt32Bits(1f / ((1u << (int)width) - 1));
+        // Format 9 packs UNORM RGB into ten bits each and alpha into the top two.
+        // Three-component callers retain their original lowering byte for byte.
+        var alpha = format == 9 && mask == 15;
         return [0x890000a5, 0x800002c2, 0x199983, ..Dest(scratch, format == 12 ? 3u : 1u), address, ai, 0x107046, 4,
-            ..Inst(138, Dest(scratch, mask), Imm(width, width, width, width), format == 9 ? Imm(0, 10, 20, 0) : Imm(0, 16, 0, 0), Src(scratch, format == 12 ? 0x50u : 0u)),
-            ..Inst(86, Dest(scratch, mask), Src(scratch, 0xe4)), ..Inst(56, [d, di], Src(scratch, 0xe4), Imm(scale, scale, scale, scale))];
+            // The xz destination uses the resource's xxyx swizzle: low 16 bits
+            // go to x and high 16 bits to z; untouched destination lanes survive.
+            ..Inst(138, Dest(scratch, mask), Imm(width, width, width, alpha ? 2u : width), format == 9 ? Imm(0, 10, 20, alpha ? 30u : 0u) : mask == 5 ? Imm(0, 0, 16, 0) : Imm(0, 16, 0, 0), Src(scratch, format == 12 ? 0x50u : 0u)),
+            ..Inst(86, Dest(scratch, mask), Src(scratch, 0xe4)), ..Inst(56, [d, di], Src(scratch, 0xe4), Imm(scale, scale, scale, alpha ? BitConverter.SingleToUInt32Bits(1f / 3f) : scale))];
     }
     private static ShaderBinding[] Declarations(Instruction[] instructions)
     {

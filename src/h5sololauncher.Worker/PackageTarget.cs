@@ -17,7 +17,7 @@ internal sealed record PackageTarget(string Root, string PackageFullName, string
         if (target.Family != ForgePaths.Family && target.Family != HaloFamily) throw new CacheException("PACKAGE_INVALID", "Unexpected launcher package identity.");
         if (!PathFor(target.PackageFullName).Equals(SafePaths.Canonical(target.Root), StringComparison.OrdinalIgnoreCase))
             throw new CacheException("PACKAGE_CHANGED", "An app installation changed. Check Forge again before retrying.");
-        SafePaths.NoLinks(target.Root); SafePaths.Child(target.Root, target.Executable);
+        SafePaths.PackageChild(target.Root, target.Executable);
     }
     private static string PathFor(string package)
     {
@@ -41,7 +41,7 @@ internal sealed record PackageTarget(string Root, string PackageFullName, string
                 {
                     var path = new StringBuilder(32768); uint size = 32768;
                     if (!Native.QueryFullProcessImageName(handle, 0, path, ref size) || PackageProcessSession.Package(handle) != PackageFullName ||
-                        !SafePaths.Canonical(path.ToString()).Equals(SafePaths.Child(Root, Executable), StringComparison.OrdinalIgnoreCase))
+                        !SafePaths.PackageChildMatches(Root, Executable, path.ToString()))
                         throw new CacheException("PACKAGE_PROCESS_MISMATCH", "An app with the expected executable name is running from a different package or folder. Close that instance before starting Forge here.");
                     if (!Native.GetProcessTimes(handle, out var created, out _, out _, out _)) continue;
                     if (found is not null) throw new CacheException("PACKAGE_MULTIPLE_PROCESSES", "More than one matching app process is running. Close the extra instance before retrying.");
@@ -67,8 +67,8 @@ internal sealed record PackageTarget(string Root, string PackageFullName, string
             {
                 var fullName = Marshal.PtrToStringUni(Marshal.ReadIntPtr(pointers, i * IntPtr.Size))!;
                 if (!fullName.Contains("_x64__", StringComparison.Ordinal)) continue;
-                var root = PathFor(fullName); SafePaths.NoLinks(root);
-                var path = SafePaths.Child(root, "AppxManifest.xml");
+                var root = PathFor(fullName); SafePaths.PackageRoot(root);
+                var path = SafePaths.PackageChild(root, "AppxManifest.xml");
                 using var stream = File.OpenRead(path);
                 if (stream.Length > 2 * 1024 * 1024) throw new CacheException("HALO_MANIFEST_INVALID", "The Halo package manifest is too large.");
                 var manifest = XDocument.Load(stream); var ns = manifest.Root!.Name.Namespace;
@@ -76,7 +76,7 @@ internal sealed record PackageTarget(string Root, string PackageFullName, string
                 var app = manifest.Root.Element(ns + "Applications")?.Elements(ns + "Application").SingleOrDefault(x => x.Attribute("Id")?.Value == "App");
                 var executable = app?.Attribute("Executable")?.Value;
                 if (string.IsNullOrWhiteSpace(executable)) continue;
-                SafePaths.Child(root, executable); targets.Add(new(root, fullName, HaloFamily, executable, "App"));
+                SafePaths.PackageChild(root, executable); targets.Add(new(root, fullName, HaloFamily, executable, "App"));
             }
             if (targets.Count != 1) throw new CacheException("HALO_INSTALLATION_UNSUPPORTED", "A single Windows x64 Halo app installation is required. Check the Halo app in Windows Settings and retry.");
             return targets[0];

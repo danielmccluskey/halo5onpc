@@ -14,10 +14,13 @@ public static class BitmapConverter
             resource.DataReferences.Length != 1 || resource.Blocks[0] != new TagBlock(80, 1, 0, resource.Blocks[0].TableOffset) || resource.Blocks.Length != (n == 0 ? 2 : 3)) throw Unsupported("Unexpected bitmap resource structure.");
         var root = resource.Block(0);
         if (n >= descriptor.Mips || U(root, 64) != n || resource.Structures[1].FieldOffset != 48 || resource.Structures[1].FieldBlock != 0 || resource.Structures[1].Target != (n > 0 ? 1 : -1)) throw Unsupported("Unexpected bitmap streaming layout.");
-        if (descriptor.Kind == 1 && (descriptor.Format != 11 || descriptor.Mips != 1 || n != 0 || descriptor.Width > 256 || descriptor.Height > 256 || root[33] != 3)) throw Unsupported("This volume texture needs a separately validated converter.");
+        // The full campaign adds this unstreamed BGRA volume mip chain; its profile
+        // checks every voxel, with depth halving alongside width and height.
+        var volumeMipChain = descriptor.Width == 32 && descriptor.Height == 32 && descriptor.Depth == 32 && descriptor.Mips == 6 && descriptor.TileMode == 13;
+        if (descriptor.Kind == 1 && (descriptor.Format != 11 || (descriptor.Mips != 1 && !volumeMipChain) || n != 0 || descriptor.Width > 256 || descriptor.Height > 256 || root[33] != 3)) throw Unsupported("This volume texture needs a separately validated converter.");
         if (descriptor.Kind != 1 && root[33] is not (0 or 2)) throw Unsupported("The bitmap resource kind is unsupported.");
         if (descriptor.Kind == 2 && n > 0) throw Unsupported("Streamed cubemaps need a separately validated converter.");
-        if (descriptor.Kind == 3 && descriptor.Depth > 1 && descriptor.Mips > 1 && descriptor.Format is not (2 or 3 or 16 or 39 or 49)) throw Unsupported("This texture array format needs separate validation.");
+        if (descriptor.Kind == 3 && descriptor.Depth > 1 && descriptor.Mips > 1 && descriptor.Format is not (2 or 3 or 14 or 16 or 39 or 49)) throw Unsupported("This texture array format needs separate validation.");
         if (n > 0)
         {
             if (resource.Block(1).Length != n * 8) throw Unsupported("Streaming metadata count differs from its chunks.");

@@ -3,7 +3,7 @@ using H5SoloLauncher.Core.Planning;
 
 namespace H5SoloLauncher.Core.Preparation;
 
-public sealed record PrepareRequest(string SourceRoot, string CacheRoot, string ForgeRoot, string PackageFullName, string Language = "English(US)");
+public sealed record PrepareRequest(string SourceRoot, string CacheRoot, string ForgeRoot, string PackageFullName, string Language = "English(US)", bool KeepRebuildData = true);
 public sealed record PreparationResult(string State, string Phase, string Message, string? Code = null, string? Details = null,
     string? PlanId = null, string? NativeModuleId = null, string? NativeSchemaId = null, string? EffectivePlanId = null,
     int Tags = 0, int Unresolved = 0, string? PreparedId = null);
@@ -39,10 +39,12 @@ public sealed class PreparationCoordinator(IPreparationServices services)
         {
             if(!string.IsNullOrWhiteSpace(request.Language) && request.Language!="English(US)")
                 throw new CacheException("CAMPAIGN_LANGUAGE_UNSUPPORTED","This version prepares English (US) campaign audio and menus. Select English (US) before preparing.");
+            var owned=H5SoloLauncher.Core.Storage.CacheFolders.Open(request.CacheRoot,request.SourceRoot,request.ForgeRoot);
+            using var preparationLease=new FileStream(H5SoloLauncher.Core.Storage.SafePaths.Child(owned.Root,"preparation.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
             Begin("Checking and indexing the dump");
             var index = services.Index(new(request.SourceRoot, request.CacheRoot, request.ForgeRoot), progress, cancellation);
             Require(index.State, "Indexed", index.Code, index.Message, index.Details);
-            Begin("Finding Osiris and Blue Team dependencies");
+            Begin("Finding Osiris through Guardians dependencies");
             var plan = services.Plan(new(request.SourceRoot, request.CacheRoot, request.ForgeRoot, Language: string.IsNullOrWhiteSpace(request.Language) ? "English(US)" : request.Language), progress, cancellation);
             Require(plan.State, "Planned", plan.Code, plan.Message, plan.Details);
             planId = plan.Summary?.PlanId ?? throw new CacheException("PLAN_RESULT_MISSING", "The dependency stage did not return a saved plan.");
@@ -51,7 +53,7 @@ public sealed class PreparationCoordinator(IPreparationServices services)
             var forge = services.Forge(new(request.SourceRoot, request.CacheRoot, request.ForgeRoot, request.PackageFullName, planId, AllowCacheRead: true), progress, cancellation);
             Require(forge.State, "Prepared", forge.Code, forge.Message, forge.Details);
             if (forge.Summary?.Probe.State != "Passed") throw new StageException(forge.Summary?.Probe.Code ?? "FORGE_CACHE_ACCESS", forge.Summary?.Probe.Message ?? "Forge couldn't verify access to this cache.", forge.Summary?.Probe.Details);
-            var input = new InputRequest(request.SourceRoot, request.CacheRoot, request.ForgeRoot, request.PackageFullName, planId);
+            var input = new InputRequest(request.SourceRoot, request.CacheRoot, request.ForgeRoot, request.PackageFullName, planId, request.KeepRebuildData);
             Begin("Caching campaign tags");
             var inputs = services.Inputs(input, progress, cancellation); Require(inputs.State, "Cached", inputs.Code, inputs.Message, inputs.Details);
             Begin("Checking native Forge layouts");

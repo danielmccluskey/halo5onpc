@@ -6,14 +6,15 @@ using H5SoloLauncher.Core.Preparation;
 namespace H5SoloLauncher.Core.Conversion;
 
 public sealed record AudioEdit(int Offset, string Before, string After, string Reason);
-public sealed record AudioRecipe(uint Id, string InputSha256, string OutputSha256, int InputBytes, int OutputBytes, int Objects, int HircObjects, AudioEdit[] Edits);
+public sealed record PreservedAudioMedia(uint Id, int Bytes, string Sha256, string Kind);
+public sealed record AudioRecipe(uint Id, string InputSha256, string OutputSha256, int InputBytes, int OutputBytes, int Objects, int HircObjects, AudioEdit[] Edits, PreservedAudioMedia[]? PreservedMedia = null);
 public sealed record AudioProfiles(int Format, int SourceVersion, int NativeVersion, AudioRecipe[] Recipes);
-public sealed record AudioConversion(byte[] Bytes, int Media, int PreservedXma);
+public sealed record AudioConversion(byte[] Bytes, int Media, int PreservedXma, int PreservedConvolution = 0);
 
 /// <summary>Versioned, fully hashed field recipes; compressed audio is never recompressed.</summary>
 public sealed class AudioConverter
 {
-    public const string Rules = "audio-118-to-112-1";
+    public const string Rules = "audio-118-to-112-2";
     private readonly Dictionary<string, AudioRecipe> recipes;
     public AudioConverter()
     {
@@ -40,7 +41,8 @@ public sealed class AudioConverter
         if (bytes.Length != recipe.OutputBytes || InputFiles.Hash(bytes) != recipe.OutputSha256) throw Invalid("Converted audio bank failed its expected checksum.");
         var after = InspectBank(bytes, 112, expectedId);
         if (!before.Objects.SequenceEqual(after.Objects)) throw Invalid("Audio conversion changed bank object identities.");
-        var media = 0; var xma = 0;
+        var media = 0; var xma = 0; var convolution = 0;
+        var preserved=(recipe.PreservedMedia??[]).ToDictionary(x=>x.Id);
         if (after.Index is { } index)
         {
             if (after.Data is not { } data || index.Length % 12 != 0) throw Invalid("Resident media has no valid data index.");
@@ -48,11 +50,22 @@ public sealed class AudioConverter
             {
                 var offset = U(bytes, at + 4); var length = U(bytes, at + 8);
                 if (offset > data.Length || length > data.Length - offset) throw Invalid("Resident audio lies outside its bank.");
-                if (ConvertWem(bytes.AsSpan(checked(data.Offset + (int)offset), checked((int)length)))) xma++;
+                var payload=bytes.AsSpan(checked(data.Offset + (int)offset), checked((int)length));
+                if(preserved.TryGetValue(U(bytes,at),out var proof))
+                {
+                    // Convolution effects carry plugin data, not WEM audio. The
+                    // recipe compiler verifies the effect's media-map reference.
+                    if(proof.Kind!="WwiseConvolutionReverb" || proof.Bytes!=payload.Length || payload.Length<12 || payload[..4].SequenceEqual("RIFF"u8) ||
+                        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(payload))!=proof.Sha256)
+                        throw Invalid("A convolution media payload differs from its verified recipe.");
+                    convolution++;
+                }
+                else if (ConvertWem(payload)) xma++;
                 media++;
             }
         }
-        return new(bytes, media, xma);
+        if(convolution!=preserved.Count)throw Invalid("The bank does not contain every verified convolution payload.");
+        return new(bytes, media, xma, convolution);
     }
     public static AudioConversion Wem(byte[] source)
     {

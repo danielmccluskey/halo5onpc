@@ -55,7 +55,7 @@ public static class CampaignContent
     }
     public static byte[] Encode(CampaignContentConfig config)
     {
-        if(config.Files.Length is <1 or >512 || config.Routes.Length is <1 or >64 || config.Files.Select(x=>x.OriginalPath).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=config.Files.Length || config.Routes.Select(x=>x.MapId).Distinct().Count()!=config.Routes.Length)
+        if(config.Files.Length is <1 or >1024 || config.Routes.Length is <1 or >64 || config.Files.Select(x=>x.OriginalPath).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=config.Files.Length || config.Routes.Select(x=>x.MapId).Distinct().Count()!=config.Routes.Length)
             throw new CacheException("CAMPAIGN_CONTENT_INVALID","The campaign runtime contains invalid or duplicate routes.");
         using var stream=new MemoryStream();using var writer=new BinaryWriter(stream,Encoding.UTF8,true);
         void Blob(byte[] bytes){writer.Write(bytes.Length);writer.Write(bytes);}

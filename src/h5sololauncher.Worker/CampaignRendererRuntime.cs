@@ -4,7 +4,7 @@ using H5SoloLauncher.Core;
 
 namespace H5SoloLauncher.Worker;
 
-public sealed record CampaignRendererStatus(uint Phase,uint Callbacks,uint Batches,uint BlockedFrames,uint PublishedBanks,uint Fault);
+public sealed record CampaignRendererStatus(uint Phase,uint Callbacks,uint Batches,uint BlockedFrames,uint PublishedBanks,uint Fault,string Message="");
 public static class CampaignRendererRuntime
 {
     public static CampaignRendererStatus Run(string forgeRoot,string package,bool activate,CancellationToken cancellation)
@@ -18,7 +18,8 @@ public static class CampaignRendererRuntime
             if(U(result,12)!=0){var end=Array.IndexOf(result,(byte)0,48,512);throw new CacheException("CAMPAIGN_RENDERER_FAILED",Encoding.UTF8.GetString(result,48,(end<0?560:end)-48));}return result;
         }
         var observed=Call(0);if(activate && U(observed,24)==0)observed=Call(1);
-        return new(U(observed,24),U(observed,28),U(observed,32),U(observed,36),U(observed,40),U(observed,44));
+        var messageEnd=Array.IndexOf(observed,(byte)0,48,512);
+        return new(U(observed,24),U(observed,28),U(observed,32),U(observed,36),U(observed,40),U(observed,44),Encoding.UTF8.GetString(observed,48,(messageEnd<0?560:messageEnd)-48));
     }
     private static uint U(byte[] bytes,int at)=>BinaryPrimitives.ReadUInt32LittleEndian(bytes.AsSpan(at));
     private static void W(byte[] bytes,int at,uint value)=>BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(at),value);

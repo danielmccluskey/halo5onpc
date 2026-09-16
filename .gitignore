@@ -454,3 +454,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+docs/playable-implementation.md
+docs/meridian-station-implementation.md
+docs/glassed-implementation.md
+docs/full-campaign-implementation.md
+docs/playable-implementation.md

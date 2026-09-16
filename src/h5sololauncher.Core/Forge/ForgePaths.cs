@@ -23,17 +23,17 @@ public static partial class ForgePaths
     { if (!PackagePattern().IsMatch(package)) throw new CacheException("FORGE_IDENTITY_INVALID", "Check the installed Forge package again."); }
     public static string[] Inventory(string root)
     {
-        root = SafePaths.Canonical(root); SafePaths.NoLinks(root);
+        root = SafePaths.Canonical(root); SafePaths.PackageRoot(root);
         var paths = new List<string>();
         foreach (var platform in new[] { "any", "pc" })
         {
-            var folder = SafePaths.Child(root, $"deploy/{platform}/levels");
+            var folder = SafePaths.PackageChild(root, $"deploy/{platform}/levels");
             if (!Directory.Exists(folder)) throw new CacheException("FORGE_GLOBALS_MISSING", "Forge’s global module folder is missing. Check the installation again.");
             foreach (var file in Directory.EnumerateFiles(folder, "globals*.module", SearchOption.TopDirectoryOnly))
             {
                 var relative = Path.GetRelativePath(root, file).Replace('\\', '/');
                 if (!IsGlobal(relative)) continue;
-                SafePaths.Child(root, relative); paths.Add(relative);
+                SafePaths.PackageChild(root, relative); paths.Add(relative);
             }
         }
         if (paths.Count == 0) throw new CacheException("FORGE_GLOBALS_MISSING", "No supported Forge global modules were found.");

@@ -17,6 +17,7 @@ internal static class CampaignPlayback
         try
         {
             Begin(phase);var locations=request.Locations;var cache=PlayableCache.Read(locations.CacheRoot,locations.ForgeRoot,locations.PackageFullName,request.PreparedId);
+            details.AppendLine(CacheMaintenance.Pending(cache.Root,locations.ForgeRoot,locations.PackageFullName));
             using var lease=new FileStream(SafePaths.Child(cache.Root,"index.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
             var runtime=PlayableCache.Resolve(cache);var ready=runtime.Prepared;
             Begin("Allowing Forge to read the cache");ForgeCacheAccess.GrantRead(new("",cache.Root,locations.ForgeRoot,locations.PackageFullName,ready.SourcePlanId,true),cancellation);
@@ -34,6 +35,7 @@ internal static class CampaignPlayback
             Begin("Checking campaign files inside Forge");using(var content=new CampaignContentRuntime(input.ForgeRoot,input.PackageFullName))content.Activate(runtime.ContentPath,runtime.ContentId,progress,cancellation);
             Begin("Preparing the campaign menu");CampaignMenuRuntime.Activate(input.ForgeRoot,input.PackageFullName,Config("menu-config",ready.MenuConfigId),ready.MenuConfigId,progress,cancellation);
             Begin("Preparing campaign rendering");var renderer=CampaignRendererRuntime.Run(input.ForgeRoot,input.PackageFullName,true,cancellation);Record(renderer);if(renderer.Phase!=1 || renderer.Fault!=0)throw new CacheException("CAMPAIGN_RENDERER_NOT_READY","Campaign rendering is not ready. Restart Forge.");
+            var deformation=CampaignDeformationRuntime.Run(input.ForgeRoot,input.PackageFullName,true,cancellation);Record(deformation);if(deformation.Phase!=1 || deformation.Errors!=0)throw new CacheException("CAMPAIGN_DEFORMATION_NOT_READY","Facial animation is not ready. Restart Forge.");
             Begin("Preparing pause menus");var ui=CampaignUiRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("ui-residency",ready.UiConfigId),ready.UiConfigId,true,cancellation);Record(ui);if(ui.Phase!=1 || ui.Rejected!=0)throw new CacheException("CAMPAIGN_UI_NOT_READY","Required menu assets are not ready. Restart Forge.");
             Begin("Registering campaign audio");var audio=CampaignAudioRuntime.Run(input.ForgeRoot,input.PackageFullName,true,cancellation);Record(audio);if(audio.Phase!=2 || audio.Result!=1)throw new CacheException("CAMPAIGN_AUDIO_NOT_READY","Campaign audio is not ready. Restart Forge.");
             Begin("Preparing the opening movie");var movie=CampaignMovieRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("movie-config",ready.MovieConfigId),ready.MovieConfigId,true,cancellation);Record(movie);
@@ -42,7 +44,7 @@ internal static class CampaignPlayback
             Begin("Preparing mission completion");var completion=CampaignCompletionRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("completion-config",ready.CompletionConfigId),ready.CompletionConfigId,1,cancellation);Record(completion);if(completion.Phase!=1)throw new CacheException("CAMPAIGN_COMPLETION_NOT_READY","Mission completion is not ready. Restart Forge.");
             Begin("Opening Solo");CampaignMenuRuntime.Activate(input.ForgeRoot,input.PackageFullName,Config("menu-config",ready.MenuConfigId),ready.MenuConfigId,progress,cancellation,true);
             Begin("Showing Forge");Record(ForgePresentation.Run(input.ForgeRoot,input.PackageFullName,true,cancellation));
-            return new("Ready","Solo","Solo is ready in Forge. Choose Osiris or Blue Team, set your difficulty and start.",pid,Details:$"Play log: {PlayLog.PathName}\n{details}",ProcessCreated:running.Created);
+            return new("Ready","Solo","Solo is ready in Forge. Choose an available mission, set your difficulty and start.",pid,Details:$"Play log: {PlayLog.PathName}\n{details}",ProcessCreated:running.Created);
         }
         catch(OperationCanceledException){return new("Paused",phase,"Startup paused. Close Forge before trying again if setup was interrupted.",pid,Details:details.ToString());}
         catch(PlayFailure error){PlayLog.Write(new{phase,error.Code,error.Message,error.Details});return new("Failed",phase,error.Message,pid,error.Code,details+"\n"+error.Details);}

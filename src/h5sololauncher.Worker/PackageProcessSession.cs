@@ -43,7 +43,7 @@ internal sealed class PackageProcessSession : IDisposable
                     if (opened == 0) throw Error("FORGE_ATTACH_DENIED", "Couldn’t open the running Forge process. Run Forge and the launcher under the same Windows account.");
                     var image = new StringBuilder(32768); uint length = 32768;
                     if (!Native.QueryFullProcessImageName(opened, 0, image, ref length)) throw Error("FORGE_IDENTITY_UNAVAILABLE", "Couldn’t verify the running Forge executable.");
-                    if (!SafePaths.Canonical(image.ToString()).Equals(SafePaths.Child(request.Root, request.Executable), StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!SafePaths.PackageChildMatches(request.Root, request.Executable, image.ToString())) continue;
                     if (Package(opened) != request.PackageFullName) continue;
                     if (!Native.IsWow64Process2(opened, out var machine, out var native) || machine != 0 || native != 0x8664)
                         throw new CacheException("FORGE_READER_ARCHITECTURE", "The running Forge process must be native Windows x64.");

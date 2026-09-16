@@ -2,7 +2,7 @@ using H5SoloLauncher.Core.Planning;
 
 namespace H5SoloLauncher.Core.Preparation;
 
-public sealed record InputRequest(string SourceRoot, string CacheRoot, string ForgeRoot, string PackageFullName, string PlanId);
+public sealed record InputRequest(string SourceRoot, string CacheRoot, string ForgeRoot, string PackageFullName, string PlanId, bool KeepRebuildData = true);
 public sealed record NamedDependency(AssetReference Identity, string? Name);
 public sealed record TagMetadata(string Schema, string[] RootGuids, NamedDependency[] Dependencies);
 public sealed record InputRecord(string Sha256, int Length, long Offset, TagMetadata Metadata);

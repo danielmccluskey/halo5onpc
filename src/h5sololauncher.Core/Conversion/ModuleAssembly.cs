@@ -11,12 +11,15 @@ namespace H5SoloLauncher.Core.Conversion;
 
 public sealed record ModuleAssemblyRequest(ShaderPreparationRequest Shaders, string ShaderManifestId);
 public sealed record AssembledModule(string OriginalPath, string RelativePath, string InputId, ModuleWriteResult Verified, string[] Scenarios, bool SharedBanks = false);
-public sealed record AssembledCampaign(int Format, string Rules, string EffectivePlanId, string AssetsId, string ShadersId, string PackageFullName, AssembledModule[] Modules, UnresolvedDependency[] Unresolved);
+public sealed record AssembledCampaign(int Format, string Rules, string EffectivePlanId, string AssetsId, string ShadersId, string PackageFullName, AssembledModule[] Modules, UnresolvedDependency[] Unresolved)
+{
+    public NativeStringSelection[] SharedStrings { get; init; } = [];
+}
 public sealed record ModuleAssemblyResult(string State, string? ManifestId = null, int Modules = 0, int Reused = 0, long Bytes = 0, string? Code = null, string? Message = null, string? Details = null);
 
 public static class ModuleAssembly
 {
-    public const string Rules = "campaign-module-assembly-1";
+    public const string Rules = "campaign-module-assembly-2";
     public static ModuleAssemblyResult Run(ModuleAssemblyRequest request, IProgress<IndexProgress> progress, CancellationToken cancellation)
     {
         var count = 0; var reused = 0; long total = 0; string? current = null;
@@ -34,6 +37,8 @@ public static class ModuleAssembly
                 shaders.Format != 1 || shaders.Rules != ShaderPreparation.Rules || shaders.EffectivePlanId != planId || shaders.AssetsId != request.Shaders.AssetsId || shaders.NativeModulesId != plan.NativeManifestId) throw InputFiles.Damaged();
             var native = InputFiles.Read<NativeModuleManifest>(cache.Root, InputFiles.PathFor("native-manifests", plan.NativeManifestId), 1024 * 1024, plan.NativeManifestId);
             if (native.PackageFullName != input.PackageFullName || native.Rules != NativeModuleCache.Rules) throw InputFiles.Damaged();
+            var schemas = InputFiles.Read<NativeSchemaSnapshot>(cache.Root, InputFiles.PathFor("native-schemas", plan.SchemaId), 4 * 1024 * 1024, plan.SchemaId);
+            var sharedStrings = NativeSharedStrings.Load(cache.Root, native, plan.Tags, new StructuralConverter(schemas), cancellation);
             var batches = assets.BatchIds.Select(id => InputFiles.Read<ConvertedAssetBatch>(cache.Root, InputFiles.PathFor("asset-batches", id), 32 * 1024 * 1024, id)).ToDictionary(x => x.SourceFile);
             var converted = batches.Values.SelectMany(b => b.Assets.Select(a => (Batch: b, Asset: a))).ToDictionary(x => (x.Batch.SourceFile, x.Asset.Item));
             var shaderTags = shaders.Definitions.ToDictionary(x => (x.File, x.Item)); var tags = plan.Tags.ToDictionary(x => (x.File, x.Item));
@@ -52,6 +57,11 @@ public static class ModuleAssembly
                     bytes = ShaderPreparation.ReadPayload(cache.Root, shader.OutputSha256);
                 }
                 return new(bytes);
+            }
+            Func<ModuleWritePayload?> AssetWriter(string file, ConvertedAsset asset, byte[] row)
+            {
+                if (sharedStrings.TryReplace(row, asset.Name, out var nativeBytes)) return () => new(nativeBytes);
+                return () => Asset(file, asset);
             }
             AssembledModule Publish(string original, string[] scenarios, ModuleWriteLayout layout, bool shared = false)
             {
@@ -115,7 +125,7 @@ public static class ModuleAssembly
                     if (converted.TryGetValue((file, entry.Index), out var asset))
                     {
                         if (!asset.Asset.Entry.AsSpan().SequenceEqual(entry.Raw)) throw InputFiles.Damaged();
-                        work.Add(index, () => Asset(file, asset.Asset));
+                        work.Add(index, AssetWriter(file, asset.Asset, rows[index]));
                     }
                     else if (entry.StoredSize > 0)
                     {
@@ -135,7 +145,7 @@ public static class ModuleAssembly
                     WI(entry, 8, added.Value.Resources.Length); WI(entry, 12, resourceTable.Count);
                     strings.Write(Encoding.UTF8.GetBytes(added.Value.Name)); strings.WriteByte(0);
                     resourceTable.AddRange(added.Value.Resources.Select(x => mapping[(added.Key.File, x)]));
-                    work.Add(mapping[added.Key], () => Asset(added.Key.File, added.Value));
+                    work.Add(mapping[added.Key], AssetWriter(added.Key.File, added.Value, entry));
                 }
                 var layout = new ModuleWriteLayout(metadata.Header, rows.Select((raw, i) => new ModuleWriteEntry(raw, work.GetValueOrDefault(i) ?? (() => null))).ToArray(), strings.ToArray(), resourceTable.ToArray(), boundary + shift);
                 var output = Publish(file.Replace("/x1/", "/pc/", StringComparison.Ordinal), scenarios, layout);
@@ -158,7 +168,8 @@ public static class ModuleAssembly
             if (native.Modules.Any(x => x.Path == sharedPath)) throw Invalid("The shared shader layer collides with an installed module.");
             var shared = Publish(sharedPath, sourcePlan.Bundle.Scenarios, new(header, bankEntries.ToArray(), bankStrings.ToArray(), Enumerable.Range(bankCount, bankCount).ToArray(), bankCount), shared: true);
             outputs.Add(shared); count++; total += shared.Verified.Bytes;
-            var manifest = new AssembledCampaign(1, Rules, planId, request.Shaders.AssetsId, request.ShaderManifestId, input.PackageFullName, outputs.ToArray(), plan.Unresolved);
+            var manifest = new AssembledCampaign(1, Rules, planId, request.Shaders.AssetsId, request.ShaderManifestId, input.PackageFullName, outputs.ToArray(), plan.Unresolved)
+                { SharedStrings = sharedStrings.Selections };
             cancellation.ThrowIfCancellationRequested(); var id = InputFiles.Save(cache.Root, "game-manifests", manifest);
             CacheLog.Write(cache.Root, $"Assembled game modules {id}: {count} modules, {total} bytes, every payload and native integrity block verified. Audio and runtime preparation remain required.");
             return new("Assembled", id, count, reused, total, Message: "Game modules built and verified. Audio and runtime preparation are still required.");

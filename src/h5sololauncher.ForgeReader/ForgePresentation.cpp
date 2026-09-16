@@ -11,7 +11,7 @@ static_assert(sizeof(Request)==552);
 static std::atomic<bool> pending{false};
 struct Result{
     HANDLE event=CreateEventW(nullptr,TRUE,FALSE,nullptr);HRESULT status=E_PENDING;
-    uint32_t visible=0,fullscreen=0;float width=0,height=0;std::atomic<bool> completed{false};
+    uint32_t visible=0,fullscreen=0;float width=0,height=0;std::atomic<bool> completed{false};std::atomic<int> stage{0};
     ~Result(){if(event)CloseHandle(event);}
     void finish(HRESULT code){if(completed.exchange(true))return;status=code;SetEvent(event);pending.store(false);}
 };
@@ -25,23 +25,21 @@ static void run(Request& request){
         bool show=request.operation!=0,windowed=request.operation==2;
         auto action=dispatcher.RunAsync(winrt::Windows::UI::Core::CoreDispatcherPriority::Normal,[result,show,windowed](){
             try{
+                result->stage=1;
                 auto window=winrt::Windows::UI::Core::CoreWindow::GetForCurrentThread();require(window!=nullptr,"Forge's game view has no window.");
                 if(show)window.Activate();
+                result->stage=2;
                 auto bounds=window.Bounds();result->visible=window.Visible()?1:0;result->width=bounds.Width;result->height=bounds.Height;
                 auto view=winrt::Windows::UI::ViewManagement::ApplicationView::GetForCurrentView();
                 if(windowed)view.ExitFullScreenMode();
                 result->fullscreen=view.IsFullScreenMode()?1:0;
-                if(show){
-                    auto shown=winrt::Windows::UI::ViewManagement::ApplicationViewSwitcher::TryShowAsStandaloneAsync(view.Id());
-                    shown.Completed([result](auto const& operation,auto const&){
-                        try{result->finish(operation.GetResults()?S_OK:HRESULT_FROM_WIN32(ERROR_NOT_READY));}
-                        catch(winrt::hresult_error const& error){result->finish(error.code());}catch(...){result->finish(E_FAIL);}
-                    });
-                }else result->finish(S_OK);
+                // This is already the main view; a standalone switch targets a
+                // different view and can leave a same-view switch pending forever.
+                result->finish(S_OK);
             }catch(winrt::hresult_error const& error){result->finish(error.code());}catch(...){result->finish(E_FAIL);}
         });queued=true;
         action.Completed([result](auto const& operation,auto const& status){if(status!=winrt::Windows::Foundation::AsyncStatus::Completed){try{operation.GetResults();}catch(winrt::hresult_error const& error){result->finish(error.code());}catch(...){result->finish(E_FAIL);}}});
-        if(WaitForSingleObject(result->event,9000)!=WAIT_OBJECT_0)throw std::runtime_error("Forge's window did not respond. The pending request was kept; close Forge before retrying.");
+        if(WaitForSingleObject(result->event,9000)!=WAIT_OBJECT_0)throw std::runtime_error("Forge's window did not respond (stage "+std::to_string(result->stage.load())+"). The pending request was kept; close Forge before retrying.");
         request.visible=result->visible;request.fullscreen=result->fullscreen;request.width=result->width;request.height=result->height;
         if(FAILED(result->status))winrt::throw_hresult(result->status);
     }catch(...){if(!queued)pending.store(false);if(apartment)winrt::uninit_apartment();throw;}

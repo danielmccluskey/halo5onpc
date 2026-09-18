@@ -1,70 +1,83 @@
 # Halo 5 Campaign on PC
 
-A small hobby project to get the **Halo 5: Guardians campaign running on PC** using the existing Halo 5: Forge PC build.
+[![Join the Discord](https://img.shields.io/badge/Join_the_Discord-5865F2?logo=discord&logoColor=white)](https://discord.com/widget?id=1481242539930419243&theme=dark) [![Sponsor me](https://img.shields.io/badge/Sponsor_me-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/danielmccluskey)
+
+A small hobby project to get the **Halo 5: Guardians campaign running on PC** through the existing Halo 5: Forge PC build.
+
+**All 15 missions are now fully playable.** A few kinks to iron out, but it's getting there.
+
+I'm mainly making this because I want to speedrun Halo 5 on PC. That's pretty much the goal. No plans for multiplayer, matchmaking or the rest of the Xbox services.
+
+The Discord is for help and support with the tool. **No sharing game files, prepared caches or links to download them. Please don't ask for them either.**
+
+Sponsoring supports me personally as a developer. It doesn't get you game files, private builds, priority support or any other special treatment.
+
+## Outstanding bugs
+- Lots! Still a work in progress
+- Checkpoint reverts not working.
+- Launcher doesn't recognize the game if it is on a different drive
+- Lots of crashes!
+
+Find a bug? Please report it on the [GitHub issues page](https://github.com/danielmccluskey/halo5onpc/issues).
 
 ## What you need
 
 - A Windows x64 PC and a local NTFS drive for the cache.
 - [Halo 5: Forge Bundle from the Microsoft Store](https://apps.microsoft.com/detail/9nblggh4v0fr), including the Halo companion app. Tested with Forge **1.194.6192.2**.
-- Your own extracted Halo 5: Guardians game files, tested with **1.1.31695.21**, or a complete compatible launcher cache. Game files are not provided.
+- Your own extracted Halo 5: Guardians game files, tested with **1.1.31695.21**, or a complete compatible launcher cache.
+
+Game files are not provided. English (US) is currently supported.
 
 ## Getting started
 
-1. Download a build from this repository's **Releases** and extract the ZIP.
-2. Open `h5sololauncher.exe`. Choose your extracted dump and a cache destination, then click **Prepare & play**. If you already have a complete cache, select it and click **Play**.
-3. In Solo, choose an available mission and start your mission. New caches include all fifteen missions through Guardians.
+1. Download the launcher from [Releases](https://github.com/danielmccluskey/halo5onpc/releases) and extract the ZIP.
+2. Open `h5sololauncher.exe`, select your extracted game files and a cache destination, then click **Prepare & play**.
+3. In **Solo**, choose a mission and play.
 
-A complete cache does not need the original dump to play. English (US) is currently supported.
+**Already have a complete cache?** Select it and click **Play**. You don't need the original game dump to play from a complete cache.
 
-To add the remaining campaign missions to an existing cache, select the extracted dump and use **Options and diagnostics > Prepare cache only**. Updating the launcher alone does not add mission assets. See the [Full-campaign preparation record](docs/full-campaign-implementation.md).
+**Missing missions in an older cache?** Select your extracted game files and use **Options and diagnostics > Prepare cache only**. Updating the launcher alone won't add the missing mission files.
 
-## Preview and status
+## Preview
+
+An older video of the first two missions running:
 
 [![Halo 5 Campaign on PC - First two missions](https://img.youtube.com/vi/g_5H8P4LFNY/maxresdefault.jpg)](https://www.youtube.com/watch?v=g_5H8P4LFNY)
 
-The first two campaign missions are verified in h5sololauncher:
-
-* **Osiris**
-* **Blue Team**
-
-There is still a lot to work out, but they're properly running and playable, which is further than I expected to get when I started messing with this. Version 0.12.0 prepares the campaign through Guardians; the additional missions are awaiting bulk gameplay testing.
-
 ## Fair warning
 
-Just being honest here, a lot of the code in this project is vibe coded! I'm nowhere near smart enough, nor am I pretending to understand half of it!
+A lot of this is vibe coded. I'm not going to pretend I understand all of it, and things will probably break.
 
-So if you try this and it breaks, don't be surprised. But it works on my PC!
-
-## Why?
-
-I'm mainly making this because I want to **speedrun Halo 5 on PC**.
-
-That's pretty much the goal.
-
-Halo 5 is the awkward one if you want to play or speedrun the Halo campaigns on PC, and I wanted to see if I could get the original campaign running here.
-
-I'm not particularly interested in bringing across multiplayer, matchmaking or the rest of the Xbox services. For now I just want to get the campaign working as well as I can.
+It works on my PC, though!
 
 ## This isn't Halo 5: Reforged
 
-This project is **not Halo 5: Reforged** and isn't connected to that project in any way.
-
-This is a completely separate hobby project that I started because I wanted to see if I could get the original Halo 5 campaign running on PC.
+This is a separate hobby project, **not Halo 5: Reforged**. I'm just focused on getting the original campaign working as well as I can.
 
 ## Game files
 
 **Halo 5 game files are not included in this repository and will not be distributed by this project.**
 
-You'll need to provide your own copy of the required campaign data. Please don't open issues asking me to upload or provide the game files.
+You'll need to provide your own copy of the required campaign data. Please don't open issues asking me to upload or provide it.
 
-## Contributing
+## Support me
 
-It's still very experimental, so I'm not really sure what contributing will look like yet.
+[![Sponsor me on GitHub](https://img.shields.io/badge/Sponsor_me-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/danielmccluskey)
 
-If you know something useful about Halo 5, Halo 5: Forge, its file formats or the PC build, feel free to open an issue.
+Sponsorship is completely optional and supports me personally as a developer. It isn't payment for Halo 5 or access to any game files.
 
-For bug reports, use **Copy details** in the launcher and include what you were doing when the problem happened.
+There are **no sponsor-only builds, early access, priority support or fixes, or any other special treatment**. Everyone gets the same public releases, and sponsors still need to provide their own game files.
 
-[Launcher and build instructions](src/h5sololauncher/README.md) · [Testing status](docs/playable-implementation.md)
+## Bugs and contributing
+
+If something breaks, open an issue with what you were doing and the output from **Copy details** in the launcher.
+
+If you know your way around Halo 5, Forge or its file formats, help is always welcome.
+
+[Launcher and build instructions](src/h5sololauncher/README.md) · [Testing notes](docs/playable-implementation.md) · [Campaign preparation](docs/full-campaign-implementation.md)
+
+## Halo Studios
+
+If you're reading this, I'd happily work on an official Halo 5 PC port for free. Give me a shout. Would save me doing it the awkward way.
 
 This is an unofficial, non-commercial fan project, unaffiliated with Microsoft, Xbox, 343 Industries or Halo Studios.

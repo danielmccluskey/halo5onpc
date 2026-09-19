@@ -5,6 +5,7 @@ namespace H5SoloLauncher.Worker;
 
 internal static class Native
 {
+    internal const uint WaitObject0 = 0, WaitTimeout = 258, WaitFailed = 0xFFFFFFFF;
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] internal static extern int GetPackagePathByFullName(string fullName, ref uint length, StringBuilder? path);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] internal static extern int GetPackageFullName(nint process, ref uint length, StringBuilder? name);
     [DllImport("kernel32.dll", SetLastError = true)] internal static extern nint OpenProcess(uint access, bool inherit, int id);

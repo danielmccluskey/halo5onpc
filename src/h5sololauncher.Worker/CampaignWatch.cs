@@ -30,6 +30,10 @@ internal static class CampaignWatch
             var target=PackageTarget.Forge(request.Campaign.Locations.ForgeRoot,request.Campaign.Locations.PackageFullName);
             var expected=new H5SoloLauncher.Core.Forge.RunningForge(request.ProcessId,request.ProcessCreated);
             if(target.Find()!=expected)return new("Exited","Game","Forge has closed. Your prepared cache is ready for next time.");
+            // Individual setup calls take short lifecycle leases. Keep one outer
+            // lease for the live campaign session so PLM cannot suspend Forge
+            // between the monitor's five-second health checks.
+            using var lifecycle=PackageDebugLease.Acquire(request.Campaign.Locations.PackageFullName);
             process=Process.GetProcessById(expected.ProcessId);
             // Retain a handle while Forge is alive so Windows preserves its exit code.
             // GetProcessById alone only associates this object with a PID.

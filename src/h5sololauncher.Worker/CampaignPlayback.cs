@@ -16,10 +16,13 @@ internal static class CampaignPlayback
         void Record<T>(T value){details.AppendLine(JsonSerializer.Serialize(value));PlayLog.Write(value);}
         try
         {
-            Begin(phase);var locations=request.Locations;var cache=PlayableCache.Read(locations.CacheRoot,locations.ForgeRoot,locations.PackageFullName,request.PreparedId);
+            Begin(phase);var locations=request.Locations;
+            Begin("Reading the playable manifest");var cache=PlayableCache.Read(locations.CacheRoot,locations.ForgeRoot,locations.PackageFullName,request.PreparedId);
+            Begin("Checking cache maintenance");
             details.AppendLine(CacheMaintenance.Pending(cache.Root,locations.ForgeRoot,locations.PackageFullName));
+            Begin("Opening the cache session");
             using var lease=new FileStream(SafePaths.Child(cache.Root,"index.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
-            var runtime=PlayableCache.Resolve(cache);var ready=runtime.Prepared;
+            Begin("Building runtime configuration");var runtime=PlayableCache.Resolve(cache);var ready=runtime.Prepared;
             Begin("Allowing Forge to read the cache");ForgeCacheAccess.GrantRead(new("",cache.Root,locations.ForgeRoot,locations.PackageFullName,ready.SourcePlanId,true),cancellation);
             var input=new InputRequest("",cache.Root,locations.ForgeRoot,locations.PackageFullName,ready.SourcePlanId);
             string Config(string category,string id)=>PreparedCampaignStore.ConfigPath(input.CacheRoot,category,id);
@@ -27,7 +30,7 @@ internal static class CampaignPlayback
             var running=PackageTarget.Forge(input.ForgeRoot,input.PackageFullName).Find()??throw new CacheException("FORGE_NOT_RUNNING","Forge closed during startup.");
             if(CampaignMenuRuntime.IsReady(input.ForgeRoot,input.PackageFullName,ready.MenuConfigId,cancellation)){
                 details.AppendLine(CampaignWatch.Check(request,ready,cancellation));
-                Begin("Showing Forge");Record(ForgePresentation.Run(input.ForgeRoot,input.PackageFullName,true,cancellation));
+                Begin("Showing Forge");WindowsForgeLaunch.ActivateExisting(new(input.ForgeRoot,input.PackageFullName));Record(ForgePresentation.Run(input.ForgeRoot,input.PackageFullName,true,cancellation));
                 return new("Ready","Game","Your campaign session is already running in Forge.",pid,Details:$"Play log: {PlayLog.PathName}\n{details}",ProcessCreated:running.Created);
             }
             Begin("Continuing through the title screen");var title=TitleAutomation.Run(new(input.ForgeRoot,input.PackageFullName),progress,cancellation);Record(title);Require(title.State,"MainMenu",title.Code,title.Message,title.Details);
@@ -43,7 +46,7 @@ internal static class CampaignPlayback
             Begin("Preparing display settings");var display=CampaignDisplayRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("display-config",ready.DisplayConfigId),ready.DisplayConfigId,true,cancellation);Record(display);
             Begin("Preparing mission completion");var completion=CampaignCompletionRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("completion-config",ready.CompletionConfigId),ready.CompletionConfigId,1,cancellation);Record(completion);if(completion.Phase!=1)throw new CacheException("CAMPAIGN_COMPLETION_NOT_READY","Mission completion is not ready. Restart Forge.");
             Begin("Opening Solo");CampaignMenuRuntime.Activate(input.ForgeRoot,input.PackageFullName,Config("menu-config",ready.MenuConfigId),ready.MenuConfigId,progress,cancellation,true);
-            Begin("Showing Forge");Record(ForgePresentation.Run(input.ForgeRoot,input.PackageFullName,true,cancellation));
+            Begin("Showing Forge");WindowsForgeLaunch.ActivateExisting(new(input.ForgeRoot,input.PackageFullName));Record(ForgePresentation.Run(input.ForgeRoot,input.PackageFullName,true,cancellation));
             return new("Ready","Solo","Solo is ready in Forge. Choose an available mission, set your difficulty and start.",pid,Details:$"Play log: {PlayLog.PathName}\n{details}",ProcessCreated:running.Created);
         }
         catch(OperationCanceledException){return new("Paused",phase,"Startup paused. Close Forge before trying again if setup was interrupted.",pid,Details:details.ToString());}

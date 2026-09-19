@@ -64,8 +64,12 @@ another request is withheld for 90 seconds unless the matching Forge process has
 already appeared. The native bridge also refuses a second request while its first
 asynchronous request remains pending.
 
-Halo is given up to about 15 seconds to appear and remain alive. Native calls use
-the shared 15-second wait and never free a still-running thread's request memory.
+Halo is given up to about 15 seconds to appear and remain alive. Native reader
+sessions take a balanced Windows package-debug lease, resume the package, and
+restore normal Process Lifetime Management when native work ends. This prevents
+automatic suspension during preparation. Calls still wait in cancellable
+intervals for up to two minutes, and a running thread's request memory is never
+freed.
 The bridge spends at most about three seconds finding Halo's dispatcher and nine
 seconds waiting for a launch outcome. Asynchronous callbacks retain private heap
 state, never a pointer to the worker's remote request buffer. An uncertain native

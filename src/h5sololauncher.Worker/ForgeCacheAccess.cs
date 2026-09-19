@@ -43,10 +43,15 @@ public static class ForgeCacheAccess
                 if (entry.IdentityReference.Equals(sid) && entry.AccessControlType == AccessControlType.Allow && entry.PropagationFlags == PropagationFlags.None &&
                     (entry.InheritanceFlags & rule.InheritanceFlags) == rule.InheritanceFlags && (entry.FileSystemRights & rule.FileSystemRights) == rule.FileSystemRights)
                     present = true;
-            acl.AddAccessRule(rule);
-            // Reapply inheritance on retry, including after an interrupted propagation.
-            // Preserve ownership, inheritance settings, denies and unrelated access rules.
-            directory.SetAccessControl(acl);
+            // Avoid rewriting an adequate ACL. The caller may be allowed to read it
+            // without owning the directory or holding WRITE_DAC (for example, after
+            // an earlier elevated run already installed this inheritable rule).
+            if (!present)
+            {
+                acl.AddAccessRule(rule);
+                // Preserve ownership, inheritance settings, denies and unrelated rules.
+                directory.SetAccessControl(acl);
+            }
             return $"Forge package SID: {sid.Value}\nCache read rule: {(present ? "already present" : "added")}\nFolder: {cache.Root}\nA live Forge read is still required to confirm access.";
         }
         catch (UnauthorizedAccessException e)

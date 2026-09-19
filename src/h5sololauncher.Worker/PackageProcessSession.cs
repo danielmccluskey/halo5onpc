@@ -15,14 +15,15 @@ internal sealed class PackageProcessSession : IDisposable
     private readonly PackageTarget request;
     private readonly Process process;
     private readonly nint handle;
+    private readonly PackageDebugLease lifecycle;
     private nint readAddress;
     private readonly string marker;
     private FileStream? lease;
     private bool uncertain;
     private bool disposed;
     private const int RequestSize = 1114160, DataOffset = 65584;
-    private PackageProcessSession(PackageTarget request, Process process, nint handle, string marker, FileStream lease)
-    { this.request = request; this.process = process; this.handle = handle; this.marker = marker; this.lease = lease; }
+    private PackageProcessSession(PackageTarget request, Process process, nint handle, string marker, FileStream lease, PackageDebugLease lifecycle)
+    { this.request = request; this.process = process; this.handle = handle; this.marker = marker; this.lease = lease; this.lifecycle = lifecycle; }
 
     public static PackageProcessSession Attach(PackageTarget request, string helperName, string exportName, CancellationToken cancellation)
     {
@@ -62,7 +63,10 @@ internal sealed class PackageProcessSession : IDisposable
             FileStream lease;
             try { lease = new(marker, FileMode.CreateNew, FileAccess.Write, FileShare.None); }
             catch (IOException) { throw new CacheException("FORGE_SESSION_PENDING", "A reader session was interrupted or is still running. Close the Halo and Forge apps completely, then use Start Forge in the launcher to retry."); }
-            var result = new PackageProcessSession(request, chosen, chosenHandle, marker, lease);
+            PackageDebugLease lifecycle;
+            try { lifecycle = PackageDebugLease.Acquire(request.PackageFullName); }
+            catch { lease.Dispose(); File.Delete(marker); throw; }
+            var result = new PackageProcessSession(request, chosen, chosenHandle, marker, lease, lifecycle);
             chosen = null; chosenHandle = 0;
             try
             {
@@ -107,7 +111,7 @@ internal sealed class PackageProcessSession : IDisposable
         var remoteOwner = Module(ownerPath.ToString());
         var loader = remoteOwner.Base + (load.ToInt64() - owner.ToInt64());
         if (loader < remoteOwner.Base || loader >= remoteOwner.Base + remoteOwner.Size) throw new CacheException("FORGE_READER_LOAD_FAILED", "The Windows loader address is outside its module.");
-        if(!alreadyLoaded)Invoke(new nint(loader), Encoding.Unicode.GetBytes(staged + '\0'), 0);
+        if(!alreadyLoaded)Invoke(new nint(loader), Encoding.Unicode.GetBytes(staged + '\0'), 0, cancellation);
         var remoteHelper = Module(staged);
         if (exportOffset <= 0 || exportOffset >= remoteHelper.Size) throw new CacheException("FORGE_READER_LOAD_FAILED", "The Forge reader export is outside its module.");
         readAddress = new nint(remoteHelper.Base + exportOffset);
@@ -131,7 +135,7 @@ internal sealed class PackageProcessSession : IDisposable
             writer.Write(0x48354652); writer.Write(1); writer.Write(operation); writer.Write(-1); writer.Write(count); writer.Write(0);
             writer.Write(offset); writer.Write(0L); writer.Write(0L); writer.Write(Encoding.Unicode.GetBytes(path + '\0'));
         }
-        var result = Invoke(readAddress, buffer, RequestSize);
+        var result = Invoke(readAddress, buffer, RequestSize, cancellation);
         var status = BitConverter.ToInt32(result, 12); var returned = BitConverter.ToInt32(result, 20);
         if (status != 0) throw new CacheException(status == 5 ? "FORGE_READ_DENIED" : "FORGE_READ_FAILED",
             $"Forge couldn’t read {path}: {new Win32Exception(status).Message} (Windows {status}).");
@@ -142,9 +146,9 @@ internal sealed class PackageProcessSession : IDisposable
     {
         cancellation.ThrowIfCancellationRequested();
         if (Package(handle) != request.PackageFullName) throw new CacheException("PACKAGE_EXITED", "The app exited while its helper was starting. Retry from the launcher.");
-        return Invoke(readAddress, buffer, buffer.Length);
+        return Invoke(readAddress, buffer, buffer.Length, cancellation);
     }
-    private byte[] Invoke(nint function, byte[] requestBytes, int readBytes)
+    private byte[] Invoke(nint function, byte[] requestBytes, int readBytes, CancellationToken cancellation)
     {
         var remote = Native.VirtualAllocEx(handle, 0, (nuint)requestBytes.Length, 0x3000, 4);
         if (remote == 0) throw Error("FORGE_READER_MEMORY", "Couldn’t allocate the bounded Forge reader buffer.");
@@ -156,11 +160,25 @@ internal sealed class PackageProcessSession : IDisposable
             thread = Native.CreateRemoteThread(handle, 0, 0, function, remote, 0, out _);
             if (thread == 0) throw Error("FORGE_READER_START_FAILED", "Windows couldn’t start the Forge reader. Copy the details for diagnosis.");
             safeToFree = false;
-            // Cancellation is observed between calls. Never free memory beneath a running thread.
-            if (Native.WaitForSingleObject(thread, 15000) != 0)
+            // A packaged game can be temporarily suspended while Windows changes foreground
+            // ownership. Keep the request alive until Forge can run it, while still allowing
+            // cancellation and detecting a process that exited instead of becoming ready.
+            var deadline = Stopwatch.StartNew();
+            while (true)
             {
+                var wait = Native.WaitForSingleObject(thread, 250);
+                if (wait == Native.WaitObject0) break;
+                if (wait == Native.WaitFailed)
+                { uncertain = true; throw Error("FORGE_READER_WAIT_FAILED", "Windows couldn’t wait for the Forge reader."); }
+                if (wait != Native.WaitTimeout)
+                { uncertain = true; throw new CacheException("FORGE_READER_WAIT_FAILED", $"Windows returned an unexpected Forge reader wait result (0x{wait:X8})."); }
+                if (cancellation.IsCancellationRequested)
+                { uncertain = true; cancellation.ThrowIfCancellationRequested(); }
+                process.Refresh();
+                if (process.HasExited) throw new CacheException("FORGE_EXITED", "Forge exited while its reader was working. Start Forge again and retry.");
+                if (deadline.Elapsed < TimeSpan.FromMinutes(2)) continue;
                 uncertain = true;
-                throw new CacheException("FORGE_READER_TIMEOUT", "Forge’s reader did not finish within 15 seconds. Close the Halo and Forge apps completely, then use Start Forge in the launcher to retry. Its pending memory was left intact.");
+                throw new CacheException("FORGE_READER_TIMEOUT", "Forge’s reader did not resume within 2 minutes. Bring Forge to the foreground and wait for its menu, or close the Halo and Forge apps completely before retrying. Its pending memory was left intact.");
             }
             safeToFree = true;
             if (!Native.GetExitCodeThread(thread, out var exit) || (readBytes > 0 && exit >= 0x80000000))
@@ -188,7 +206,7 @@ internal sealed class PackageProcessSession : IDisposable
         if (disposed) return; disposed = true;
         lease?.Dispose(); lease = null;
         try { if (!uncertain) File.Delete(marker); }
-        finally { Native.CloseHandle(handle); process.Dispose(); }
+        finally { lifecycle.Dispose(); Native.CloseHandle(handle); process.Dispose(); }
     }
 }
 

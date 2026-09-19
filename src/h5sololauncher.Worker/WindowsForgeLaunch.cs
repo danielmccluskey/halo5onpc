@@ -111,6 +111,19 @@ public sealed class WindowsForgeLaunch : IForgeLaunchPlatform
         catch (Exception) { /* Preserve the startup result when logging is unavailable. */ }
         return result;
     }
+    public static int ActivateExisting(ForgeLaunchRequest request)
+    {
+        if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Forge activation requires Windows.");
+        var target = PackageTarget.Forge(request.ForgeRoot, request.PackageFullName); PackageTarget.Verify(target);
+        object manager = new ActivationManager();
+        try
+        {
+            var result = ((IActivationManager)manager).ActivateApplication(target.Family + "!" + target.ApplicationId, "", 0, out var processId);
+            if (result < 0) throw new CacheException("FORGE_ACTIVATION_FAILED", $"Windows couldn’t show Forge (0x{result:X8}). {Marshal.GetExceptionForHR(result)?.Message}");
+            return checked((int)processId);
+        }
+        finally { Marshal.FinalReleaseComObject(manager); }
+    }
     public static ForgeLaunchResult Inspect(ForgeLaunchRequest request)
     {
         try

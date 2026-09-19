@@ -1,5 +1,7 @@
 using H5SoloLauncher.Core.Forge;
 using H5SoloLauncher.Core.Planning;
+using H5SoloLauncher.Core.Runtime;
+using H5SoloLauncher.Core.Storage;
 
 namespace H5SoloLauncher.Core.Preparation;
 
@@ -39,8 +41,17 @@ public sealed class PreparationCoordinator(IPreparationServices services)
         {
             if(!string.IsNullOrWhiteSpace(request.Language) && request.Language!="English(US)")
                 throw new CacheException("CAMPAIGN_LANGUAGE_UNSUPPORTED","This version prepares English (US) campaign audio and menus. Select English (US) before preparing.");
-            var owned=H5SoloLauncher.Core.Storage.CacheFolders.Open(request.CacheRoot,request.SourceRoot,request.ForgeRoot);
-            using var preparationLease=new FileStream(H5SoloLauncher.Core.Storage.SafePaths.Child(owned.Root,"preparation.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+            var owned=CacheFolders.Open(request.CacheRoot,request.SourceRoot,request.ForgeRoot);
+            using var preparationLease=new FileStream(SafePaths.Child(owned.Root,"preparation.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+            // The UI discovers playable caches asynchronously. Enforce the same
+            // fast path in the worker so an early click can never restart the
+            // preparation pipeline for an already complete cache.
+            if(File.Exists(SafePaths.Child(owned.Root,"playable.json")))
+            {
+                Begin("Opening the prepared cache");
+                var playable=PlayableCache.Open(owned.Root,request.ForgeRoot,request.PackageFullName);
+                return new("Ready","Ready","The existing playable cache is ready.",PreparedId:playable.Id);
+            }
             Begin("Checking and indexing the dump");
             var index = services.Index(new(request.SourceRoot, request.CacheRoot, request.ForgeRoot), progress, cancellation);
             Require(index.State, "Indexed", index.Code, index.Message, index.Details);

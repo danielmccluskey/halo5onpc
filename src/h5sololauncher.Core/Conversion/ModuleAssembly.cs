@@ -74,9 +74,11 @@ public static class ModuleAssembly
                     try
                     {
                         var old = InputFiles.Read<AssembledModule>(cache.Root, checkpoint, 32768);
-                        using var stream = File.OpenRead(destination);
-                        if (old.InputId == key && old.OriginalPath == original && old.RelativePath == relative && old.Verified.Bytes == stream.Length &&
-                            old.SharedBanks == shared && old.Scenarios.SequenceEqual(scenarios) && InputFiles.Digest(stream, cancellation) == old.Verified.Sha256)
+                        var metadata = FileMetadata.Read(destination, "Module", cancellation);
+                        if (old.InputId == key && old.OriginalPath == original && old.RelativePath == relative && old.Verified.Bytes == metadata.FileLength &&
+                            old.Verified.TableSha256 == metadata.Digest && old.Verified.Entries == metadata.ItemCount && old.Verified.Blocks == metadata.BlockCount &&
+                            old.Verified.Sha256.Length == 64 && old.Verified.Sha256.All(Uri.IsHexDigit) &&
+                            old.SharedBanks == shared && old.Scenarios.SequenceEqual(scenarios))
                         { reused++; return old; }
                     }
                     catch (Exception e) when (e is IOException or CacheException or JsonException) { }

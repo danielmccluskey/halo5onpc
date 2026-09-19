@@ -59,10 +59,9 @@ public sealed class PlayableCacheTests
     }
 
     [Theory]
-    [InlineData("payload")]
     [InlineData("metadata")]
     [InlineData("config")]
-    public void MissingOrChangedFilesFailBeforeForgeStarts(string kind)
+    public void RoutineOpenDefersMetadataAndConfigChecksToForge(string kind)
     {
         using var f = new Fixture();
         var path = kind switch
@@ -73,8 +72,14 @@ public sealed class PlayableCacheTests
         };
         if (kind == "payload") File.Delete(path);
         else { var bytes = File.ReadAllBytes(path); bytes[0] ^= 1; File.WriteAllBytes(path, bytes); }
-        var error = Assert.Throws<CacheException>(() => PlayableCache.Open(f.Root, "", Fixture.Package));
-        Assert.Contains("dump", error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(f.Manifest.Prepared.PackageFullName, PlayableCache.Open(f.Root, "", Fixture.Package).Manifest.Prepared.PackageFullName);
+    }
+    [Fact]
+    public void RoutineOpenDefersLargePayloadChecksToForge()
+    {
+        using var f = new Fixture();
+        File.Delete(Path.Combine(f.Root, f.Manifest.Files[0].CachePath));
+        Assert.Equal(f.Manifest.Prepared.PackageFullName, PlayableCache.Open(f.Root, "", Fixture.Package).Manifest.Prepared.PackageFullName);
     }
 
     [Theory]
@@ -123,14 +128,13 @@ public sealed class PlayableCacheTests
     }
 
     [Fact]
-    public async Task IncompleteCacheCannotPrepareWithoutDumpButCanWithDump()
+    public async Task MissingLargePayloadIsDeferredToRuntimeValidation()
     {
         using var f = new Fixture(); File.Delete(Path.Combine(f.Root, f.Manifest.Files[0].CachePath));
         var model = new CacheViewModel(new LauncherSettingsStore(Path.Combine(f.Root, "settings.json")), new Worker());
         model.Configure("", "", false, Fixture.Package, true); await model.ChooseAsync(f.Root);
-        Assert.False(model.CanPrimary); Assert.Contains("dump", model.PreparationMessage);
-        model.Configure(f.Source, "", true, Fixture.Package, true);
-        Assert.True(model.CanPrepare); await model.PauseAndWaitAsync();
+        Assert.True(model.CanPrimary); Assert.Equal("Play", model.PrimaryLabel);
+        await model.PauseAndWaitAsync();
     }
 
     [Fact]

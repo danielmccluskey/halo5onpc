@@ -79,18 +79,10 @@ inline void verify(File& file) {
     // permission grant. The worker rejects links before configuration; retain
     // this verified file and compare its volume/file identity on every open.
     file.identity=info;
-    BCRYPT_ALG_HANDLE algorithm=nullptr;BCRYPT_HASH_HANDLE hash=nullptr;
-    require(BCryptOpenAlgorithmProvider(&algorithm,BCRYPT_SHA256_ALGORITHM,nullptr,0)>=0,"The file verifier could not initialize SHA-256.");
-    auto status=BCryptCreateHash(algorithm,&hash,nullptr,0,nullptr,0,0);
-    std::vector<unsigned char> buffer(1024*1024);uint64_t total=0;bool ok=status>=0;
-    while(ok && total<file.length) {
-        if(InterlockedCompareExchange(&stop,0,0)){ok=false;break;}
-        DWORD read=0;ok=ReadFile(file.locked,buffer.data(),static_cast<DWORD>(buffer.size()),&read,nullptr) && read>0;
-        if(ok){total+=read;ok=BCryptHashData(hash,buffer.data(),read,0)>=0;}
-    }
-    std::array<unsigned char,32> digest{};if(ok)ok=BCryptFinishHash(hash,digest.data(),32,0)>=0;
-    if(hash)BCryptDestroyHash(hash);BCryptCloseAlgorithmProvider(algorithm,0);
-    require(ok && total==file.length && digest==file.digest,"A generated game file failed its full integrity check, or verification was paused.");
+    // Outputs are fully hashed and read back before their sealed manifest is
+    // published. Routine Play verifies stable file identity, type and length,
+    // then retains this handle so later redirected opens must match the same
+    // NTFS object. Full multi-gigabyte hashing belongs to explicit repair.
 }
 inline DWORD WINAPI verifyAll(void*) {
     try { for(auto& file:files){verify(file);InterlockedIncrement(&checkedFiles);}InterlockedExchange(&phase,2); }

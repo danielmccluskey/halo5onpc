@@ -41,7 +41,7 @@ public static class PlayableCache
         try
         {
             var manifest = InputFiles.Read<PlayableManifest>(root, InputFiles.PathFor("playable-manifests", id), 4 * 1024 * 1024, id);
-            Validate(root, package, manifest);
+            Validate(root, package, manifest, checkRuntimeFiles: false);
             return new(id, root, manifest);
         }
         catch (CacheException e) when (e.Code == "INPUT_CACHE_DAMAGED") { throw Incomplete(e.Message); }
@@ -99,7 +99,7 @@ public static class PlayableCache
         var sha = Convert.ToHexString(reader.ReadBytes(32));
         if (movieStream.Position != movieStream.Length) throw Incomplete("Invalid movie configuration length.");
         var manifest = new PlayableManifest(1, audio.Language, prepared, catalogue.Maps, files.ToArray(), new("bink/cin_010_halsey_60.bk2", path, size, sha));
-        Validate(root, package, manifest);
+        Validate(root, package, manifest, checkRuntimeFiles: true);
         var id = InputFiles.Save(root, "playable-manifests", manifest);
         InputFiles.Write(root, "playable.json", JsonSerializer.SerializeToUtf8Bytes(new Pointer(id)));
         return new(id, root, manifest);
@@ -138,7 +138,7 @@ public static class PlayableCache
         stream.Position = 0; var bytes = new byte[stream.Length]; stream.ReadExactly(bytes); return bytes;
     }
 
-    private static void Validate(string root, string package, PlayableManifest manifest)
+    private static void Validate(string root, string package, PlayableManifest manifest, bool checkRuntimeFiles)
     {
         if (manifest.Prepared is null || manifest.Maps is null || manifest.Files is null || manifest.Movie is null || manifest.Maps.Any(x => x is null) || manifest.Files.Any(x => x is null))
             throw Incomplete("The playback manifest has missing fields.");
@@ -151,16 +151,20 @@ public static class PlayableCache
             manifest.Maps.Select(x=>x.Scenario).Distinct(StringComparer.Ordinal).Count()!=19 ||
             !ContentBundles.All.Any(bundle=>available.Length==bundle.Scenarios.Length && available.ToHashSet(StringComparer.Ordinal).SetEquals(bundle.Scenarios)))
             throw Incomplete("The mission catalogue is incomplete.");
-        foreach (var (category, id, limit) in new[] { ("menu-config", p.MenuConfigId, 16 * 1024 * 1024), ("ui-residency", p.UiConfigId, 512 * 1024), ("completion-config", p.CompletionConfigId, 4 * 1024 * 1024), ("display-config", p.DisplayConfigId, 4 * 1024 * 1024) })
-            ConfigBytes(root, category, id, limit);
+        if (checkRuntimeFiles)
+            foreach (var (category, id, limit) in new[] { ("menu-config", p.MenuConfigId, 16 * 1024 * 1024), ("ui-residency", p.UiConfigId, 512 * 1024), ("completion-config", p.CompletionConfigId, 4 * 1024 * 1024), ("display-config", p.DisplayConfigId, 4 * 1024 * 1024) })
+                ConfigBytes(root, category, id, limit);
         foreach (var file in manifest.Files.Append(manifest.Movie))
         {
             Relative(file.OriginalPath); Relative(file.CachePath);
             if (!file.CachePath.StartsWith("game/", StringComparison.Ordinal)) throw Incomplete("Runtime files must be inside the cache game folder.");
-            SafePaths.Child(root, file.OriginalPath);
             if (file.Bytes <= 0 || file.Sha256 is null || file.Sha256.Length != 64 || file.Sha256.Any(c => !Uri.IsHexDigit(c))) throw Incomplete("Invalid file entry: " + file.CachePath);
-            var info = new FileInfo(SafePaths.Child(root, file.CachePath));
-            if (!info.Exists || info.Length != file.Bytes) throw Incomplete("Missing or wrong-sized file: " + file.CachePath);
+            if (checkRuntimeFiles)
+            {
+                SafePaths.Child(root, file.OriginalPath);
+                var info = new FileInfo(SafePaths.Child(root, file.CachePath));
+                if (!info.Exists || info.Length != file.Bytes) throw Incomplete("Missing or wrong-sized file: " + file.CachePath);
+            }
         }
         foreach (var map in manifest.Maps)
         {
@@ -169,9 +173,12 @@ public static class PlayableCache
                 throw Incomplete("Invalid mission metadata entry.");
             if (map.Available && map.ModulePaths.Any(path => !manifest.Files.Any(file => file.OriginalPath == path))) throw Incomplete("A playable mission is missing required module entries.");
             CampaignMetadata.ModuleList(map.SourceModules); CampaignMetadata.ModuleList(map.TargetModules);
-            var path = Metadata(map).CachePath;
-            using var stream = File.OpenRead(SafePaths.Child(root, path));
-            if (stream.Length is <= 0 or > 1024 * 1024 || InputFiles.Digest(stream, default) != map.MetadataSha256) throw Incomplete("Mission metadata changed: " + path);
+            if (checkRuntimeFiles)
+            {
+                var path = Metadata(map).CachePath;
+                using var stream = File.OpenRead(SafePaths.Child(root, path));
+                if (stream.Length is <= 0 or > 1024 * 1024 || InputFiles.Digest(stream, default) != map.MetadataSha256) throw Incomplete("Mission metadata changed: " + path);
+            }
         }
         foreach (var required in new[] { "__cms__/campaign/campaignnormal.bin", "__cms__/campaign/campaignarcade.bin", "sound/win/h5solo-campaign.pck", "deploy/pc/levels/h5solo-menu.module" })
             if (!manifest.Files.Any(x => x.OriginalPath == required)) throw Incomplete("Missing runtime entry: " + required);
@@ -203,9 +210,13 @@ public static class PlayableCache
         writer.Write(0x564d3548u); writer.Write(1); Text(m.Prepared.PackageFullName); Text(cache.Root); Text(movie.CachePath);
         writer.Write(movie.Bytes); writer.Write(32); writer.Write(Convert.FromHexString(movie.Sha256)); writer.Flush();
         var bytes = stream.ToArray(); var movieId = InputFiles.Hash(bytes);
-        InputFiles.Write(cache.Root, InputFiles.PathFor("movie-config", movieId, ".bin"), bytes);
+        var movieRelative = InputFiles.PathFor("movie-config", movieId, ".bin");
+        if (!File.Exists(Path.Combine(cache.Root, movieRelative.Replace('/', Path.DirectorySeparatorChar))))
+            InputFiles.Write(cache.Root, movieRelative, bytes);
         var content = CampaignContent.Encode(new(m.Prepared.PackageFullName, cache.Root, m.Files, m.Maps.Where(x => x.Available).ToArray()));
-        var id = InputFiles.Hash(content); var relative = InputFiles.PathFor("runtime-config", id, ".bin"); InputFiles.Write(cache.Root, relative, content);
+        var id = InputFiles.Hash(content); var relative = InputFiles.PathFor("runtime-config", id, ".bin");
+        if (!File.Exists(Path.Combine(cache.Root, relative.Replace('/', Path.DirectorySeparatorChar))))
+            InputFiles.Write(cache.Root, relative, content);
         return new(m.Prepared with { MovieConfigId = movieId }, SafePaths.Child(cache.Root, relative), id);
     }
 }

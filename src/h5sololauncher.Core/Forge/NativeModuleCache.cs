@@ -47,9 +47,10 @@ public static class NativeModuleCache
                     try
                     {
                         var candidate = InputFiles.Read<CachedNativeModule>(cache.Root, checkpoint, 16384);
-                        using var stream = File.OpenRead(target);
-                        if (candidate.Path == current && candidate.RelativePath == relative && candidate.TableDigest == module.Digest && candidate.Length == stream.Length &&
-                            candidate.Length == first.FileLength && candidate.Modified == first.LastWriteFileTime && InputFiles.Digest(stream, cancellation) == candidate.Sha256)
+                        var metadata = FileMetadata.Read(target, "Module", cancellation);
+                        if (candidate.Path == current && candidate.RelativePath == relative && candidate.TableDigest == module.Digest &&
+                            metadata.Digest == candidate.TableDigest && candidate.Length == metadata.FileLength && candidate.Length == first.FileLength &&
+                            candidate.Modified == first.LastWriteFileTime && candidate.Sha256.Length == 64 && candidate.Sha256.All(Uri.IsHexDigit))
                             saved = candidate;
                     }
                     catch (Exception e) when (e is IOException or JsonException || e is CacheException { Code: "INPUT_CACHE_DAMAGED" }) { }

@@ -23,7 +23,9 @@ internal static class CacheMaintenance
     }
     public static string Pending(string root,string forge,string package)
     {
-        try { root=CacheFolders.OpenExisting(root,forge).Root; return File.Exists(SafePaths.Child(root,CacheCleanup.Pending)) ? Run(root,forge,package).Message : ""; }
+        // Cleanup can enumerate and verify tens of gigabytes. It is maintenance,
+        // never a prerequisite for playback, so do not run it on the Play path.
+        try { root=CacheFolders.OpenExisting(root,forge).Root; return File.Exists(SafePaths.Child(root,CacheCleanup.Pending)) ? "Obsolete cache cleanup is pending and was deferred so Play can start immediately." : ""; }
         catch(Exception error) { return "Cache is ready; cleanup deferred: " + error.Message; }
     }
 }

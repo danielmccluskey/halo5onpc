@@ -49,10 +49,11 @@ public static class ConvertedAssets
                     {
                         var old = InputFiles.Read<ConvertedAssetBatch>(cache.Root, checkpoint, 32 * 1024 * 1024);
                         if (old.Rules == Rules && old.Key == key && old.SourceFile == group.Key && old.SourceDigest == metadata.Digest)
-                        { Verify(cache.Root, old, cancellation); batch = old; reused++; }
+                        { VerifyCheckpoint(cache.Root, old, cancellation); batch = old; reused++; }
                     }
                     catch (Exception e) when (e is IOException or CacheException or JsonException) { /* Rebuild this module's owned conversion pack. */ }
                 }
+                var reusedBatch = batch is not null;
                 if (batch is null)
                 {
                     using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -141,7 +142,7 @@ public static class ConvertedAssets
                 tags += batch.Assets.Count(x => BinaryPrimitives.ReadInt32LittleEndian(x.Entry.AsSpan(4)) == -1);
                 resources += batch.Assets.Count(x => BinaryPrimitives.ReadInt32LittleEndian(x.Entry.AsSpan(4)) != -1); bytes += batch.PackBytes;
                 batches.Add(InputFiles.Save(cache.Root, "asset-batches", batch));
-                progress.Report(new("Converting campaign assets", tags, plan.Tags.Length, group.Key, reused));
+                progress.Report(new(reusedBatch ? "Reusing campaign assets" : "Converting campaign assets", tags, plan.Tags.Length, group.Key, reused));
             }
             var manifest = new ConvertedAssetManifest(1, Rules, request.EffectivePlanId, batches.ToArray(), tags, resources, bytes);
             var id = InputFiles.Save(cache.Root, "asset-manifests", manifest);
@@ -163,6 +164,27 @@ public static class ConvertedAssets
     {
         using var stream = File.OpenRead(SafePaths.Child(root, InputFiles.PathFor("asset-packs", batch.PackId, ".pack")));
         VerifyStream(stream, batch, cancellation);
+    }
+    internal static void VerifyCheckpoint(string root, ConvertedAssetBatch batch, CancellationToken cancellation)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        if (batch.Rules != Rules || batch.PackBytes < Header.Length || batch.Assets is null) throw InputFiles.Damaged();
+        var path = SafePaths.Child(root, InputFiles.PathFor("asset-packs", batch.PackId, ".pack"));
+        using var stream = File.OpenRead(path);
+        if (stream.Length != batch.PackBytes) throw InputFiles.Damaged();
+        CheckHeader(stream);
+        long cursor = Header.Length;
+        foreach (var asset in batch.Assets)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            if (asset.Entry is null || asset.Entry.Length < 8 || asset.Resources is null || asset.Length < 0) throw InputFiles.Damaged();
+            if (asset.Length == 0)
+            { if (asset.Offset != 0 || asset.Sha256 is not null) throw InputFiles.Damaged(); continue; }
+            if (asset.Length > ModulePayloadReader.MaximumResourceBytes || asset.Offset != cursor + 36 || asset.Offset > batch.PackBytes - asset.Length ||
+                asset.Sha256 is null || asset.Sha256.Length != 64 || !asset.Sha256.All(Uri.IsHexDigit)) throw InputFiles.Damaged();
+            cursor = asset.Offset + asset.Length;
+        }
+        if (cursor != batch.PackBytes) throw InputFiles.Damaged();
     }
     internal static void VerifyStream(FileStream stream, ConvertedAssetBatch batch, CancellationToken cancellation)
     {

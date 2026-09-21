@@ -77,6 +77,10 @@ dotnet test h5sololauncher.slnx -c Release
 dotnet publish src/h5sololauncher -c Release -r win-x64 --self-contained true -o artifacts/h5sololauncher-0.12.0
 ```
 
+`build.ps1` in the repository root runs those steps, stops at the first one that
+fails and copies the native DLLs into `artifacts/local-build`, which the manual
+publish above does not do.
+
 Keep the complete published folder together, including the worker, native DLLs,
 .NET runtime and SQLite. No personal drive or username is an application default.
 

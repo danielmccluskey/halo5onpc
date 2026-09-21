@@ -55,7 +55,7 @@ static void run(Request& request){
         require(ok && sha(data.data(),data.size())==request.sha256,"The display configuration changed or is damaged.");
         content::Wire wire(data);require(wire.number<uint32_t>()==0x53443548 && wire.number<uint32_t>()==1 && wire.string()=="Microsoft.Halo5Forge_1.194.6192.2_x64__8wekyb3d8bbwe","The display configuration is incompatible.");
         menuAssets::Proof proof{wire.number<uint32_t>(),{wire.number<uint64_t>(),wire.number<uint64_t>()}};auto before=wire.blob(256*1024);script=wire.blob(256*1024);
-        require(wire.end() && proof.gid==0x003d87f1 && sha(before.data(),before.size())=="2CA444108AA6EB342AF33D089A23BB767B370D614DE6EAFDAFABF5F960291384" && sha(script.data(),script.size())=="F24E51F97633CD96B2931B263F4B2FB12F9BDAA9691DE98C82D77424DD1A5505","The display script is not the supported launcher adaptation.");
+        require(wire.end() && proof.gid==0x003d87f1 && sha(before.data(),before.size())=="2CA444108AA6EB342AF33D089A23BB767B370D614DE6EAFDAFABF5F960291384" && sha(script.data(),script.size())=="967FA197F6BDF1B4162C973C5A4BA0D6FD85E1FE43D1F3BF114DB41A7DEC17F8","The display script is not the one this launcher build expects. Prepare the cache again so it regenerates the audio and video settings.");
         auto root=menuAssets::resolve(menuAssets::find(image),proof);scriptRoot=root.root;originalPointer=value<uint64_t>(scriptRoot+20);originalLength=value<uint32_t>(scriptRoot+44);
         require(originalLength==before.size() && bytes(originalPointer,originalLength)==before,"The installed display script was already modified.");loadSettingsPath();
         handler=AddVectoredExceptionHandler(1,trap);require(handler!=nullptr,"Could not prepare native display settings.");

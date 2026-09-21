@@ -47,17 +47,20 @@ static LONG CALLBACK trap(EXCEPTION_POINTERS* x){
  auto a=(uint64_t)x->ExceptionRecord->ExceptionAddress;auto c=x->ContextRecord;auto&s=DisplayState;
  if(a==base()+0x1551ecf){
   int option=(int)c->R14;
-  if(option==3||option==4){float period=1.0f/(option==3?144.0f:180.0f);memcpy(&c->Xmm10.Low,&period,4);s.lastPeriod=period;s.lastEnum=option;InterlockedIncrement(&s.paceHits);}
+  // The engine writes 16.667 here: milliseconds of one authored frame, not seconds. Content,
+  // abilities and animations are timed against it, so it stays put and only the limiter below
+  // runs faster. Scaling it made sprint unreliable and weapon lowering crawl.
+  if(option==3){float period=16.667f;memcpy(&c->Xmm10.Low,&period,4);s.lastPeriod=period;s.lastEnum=option;InterlockedIncrement(&s.paceHits);}
   c->Rdi=(uint64_t)(int64_t)*(int32_t*)(c->Rcx+8);c->Rip=a+4;return EXCEPTION_CONTINUE_EXECUTION;
  }
  if(a==base()+0x152b28e){
-  uint32_t interval=(uint32_t)c->Rbx;if(interval==3||interval==4){interval=1;InterlockedIncrement(&s.presentHits);}
+  uint32_t interval=(uint32_t)c->Rbx;if(interval==3){interval=1;InterlockedIncrement(&s.presentHits);}
   c->Rdx=interval;c->Rip=a+2;return EXCEPTION_CONTINUE_EXECUTION;
  }
  if(a==base()+0x155f483){
   // Original cmp/jg assumes that every value above 1 means 30 FPS.
   int option=*(int*)(c->Rcx+0xac);
-  if(option==3||option==4){*(unsigned char*)(base()+0x614168a)=0;c->Rip=base()+0x155f4f1;}
+  if(option==3){*(unsigned char*)(base()+0x614168a)=0;c->Rip=base()+0x155f4f1;}
   else c->Rip=base()+(option>1?0x155f4ea:0x155f48c);
   // Both original paths overwrite flags before using them.
   return EXCEPTION_CONTINUE_EXECUTION;
@@ -67,8 +70,9 @@ static LONG CALLBACK trap(EXCEPTION_POINTERS* x){
   // wait/deadline and elapsed-time accounting; change only its normal 60 Hz
   // period. Explicit cinematic/engine 30 Hz modes keep their original period.
   int option=*(int*)(base()+0x614194c);
-  if((option==3||option==4)&&c->Rdi==16666){
-   c->Rdi=option==3?6944:5556;s.lastMicroseconds=(uint32_t)c->Rdi;InterlockedIncrement(&s.clockHits);
+  // 8333 microseconds is the period the engine itself tabulates for 120 Hz.
+  if(option==3&&c->Rdi==16666){
+   c->Rdi=8333;s.lastMicroseconds=(uint32_t)c->Rdi;InterlockedIncrement(&s.clockHits);
   }
   c->Rcx=__readgsqword(0x58);c->Rip=a+9;return EXCEPTION_CONTINUE_EXECUTION;
  }

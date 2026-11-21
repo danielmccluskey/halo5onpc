@@ -54,8 +54,10 @@ internal sealed class PackageProcessSession : IDisposable
             }
             if (chosen is null) throw new CacheException("FORGE_NOT_RUNNING", "The required app is no longer running. Use Start Forge in the launcher to retry.");
             if (!Native.GetProcessTimes(chosenHandle, out var creation, out _, out _, out _)) throw Error("FORGE_IDENTITY_UNAVAILABLE", "Couldn’t identify this Forge session.");
-            var localState = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", request.Family, "LocalState");
-            SafePaths.NoLinks(localState);
+            var localStatePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", request.Family, "LocalState");
+            // Windows redirects LocalState through a junction when the app's data
+            // lives on another drive. Work on the real folder instead of refusing it.
+            var localState = SafePaths.ResolveFolder(localStatePath);
             if (!Directory.Exists(localState)) throw new CacheException("FORGE_LOCAL_STATE_MISSING", "Windows has not created the app data folder yet. Retry startup from the launcher.");
             var bridge = SafePaths.Child(localState, "h5sololauncher/bridge"); Directory.CreateDirectory(bridge);
             var marker = SafePaths.Child(bridge, $"session-{chosen.Id}-{creation:x16}.pending");

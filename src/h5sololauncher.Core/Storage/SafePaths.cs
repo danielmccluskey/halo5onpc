@@ -23,19 +23,59 @@ public static class SafePaths
             }
             catch (FileNotFoundException) { }
             catch (DirectoryNotFoundException) { }
+            // Windows can deny attribute access on a protected folder above a
+            // usable path (for example C:\Program Files\WindowsApps). That is a
+            // permission condition, not evidence of a link, so keep checking.
+            catch (UnauthorizedAccessException) { }
         }
+    }
+
+    // Some Windows folders are routinely links or junctions: an app package can be
+    // registered through one when it is installed on another drive, and a package's
+    // LocalState is a junction when the app data lives on another volume. Follow the
+    // link chain to the real folder so callers work on the physical path.
+    public static string ResolveFolder(string path)
+    {
+        var current = Canonical(path);
+        for (var depth = 0; depth < 16; depth++)
+        {
+            var info = new DirectoryInfo(current);
+            bool linked;
+            try { linked = File.GetAttributes(current).HasFlag(FileAttributes.ReparsePoint); }
+            catch (FileNotFoundException) { return current; }
+            catch (DirectoryNotFoundException) { return current; }
+            catch (UnauthorizedAccessException) { return current; }
+            catch (IOException) { return current; }
+            if (!linked) return current;
+            string? target;
+            try { target = info.ResolveLinkTarget(true)?.FullName; }
+            catch (UnauthorizedAccessException) { return current; }
+            catch (IOException) { return current; }
+            if (string.IsNullOrEmpty(target)) return current;
+            current = Canonical(target);
+        }
+        throw new CacheException("PATH_LINKED", $"The folder is linked too deeply to resolve: {path}");
     }
 
     // Windows may register an app package through a link when it is installed on
     // another drive. Permit that package-root link only; reject linked descendants.
+    // Protected package folders can also deny link resolution to a normal user; the
+    // registered path is still usable, so treat that as "not inspectable", not fatal.
     public static void PackageRoot(string root)
     {
         root = Canonical(root);
         var parent = Path.GetDirectoryName(root);
         if (parent is not null) NoLinks(parent);
-        if (!File.GetAttributes(root).HasFlag(FileAttributes.ReparsePoint)) return;
-        var info = new DirectoryInfo(root);
-        var target = info.ResolveLinkTarget(true)?.FullName;
+        bool linked;
+        try { linked = File.GetAttributes(root).HasFlag(FileAttributes.ReparsePoint); }
+        catch (FileNotFoundException) { return; }
+        catch (DirectoryNotFoundException) { return; }
+        catch (UnauthorizedAccessException) { return; }
+        if (!linked) return;
+        string? target;
+        try { target = new DirectoryInfo(root).ResolveLinkTarget(true)?.FullName; }
+        catch (UnauthorizedAccessException) { return; }
+        catch (IOException) { target = null; }
         if (target is null) throw new CacheException("PATH_LINKED", $"The package junction could not be resolved: {root}");
         NoLinks(target);
     }
@@ -57,6 +97,7 @@ public static class SafePaths
             }
             catch (FileNotFoundException) { }
             catch (DirectoryNotFoundException) { }
+            catch (UnauthorizedAccessException) { }
         }
         return path;
     }
@@ -66,7 +107,10 @@ public static class SafePaths
         var expected = PackageChild(root, relative);
         actual = Canonical(actual);
         if (actual.Equals(expected, StringComparison.OrdinalIgnoreCase)) return true;
-        var physicalRoot = new DirectoryInfo(Canonical(root)).ResolveLinkTarget(true)?.FullName;
+        string? physicalRoot;
+        try { physicalRoot = new DirectoryInfo(Canonical(root)).ResolveLinkTarget(true)?.FullName; }
+        catch (UnauthorizedAccessException) { return false; }
+        catch (IOException) { return false; }
         return physicalRoot is not null && actual.Equals(
             Path.GetFullPath(Path.Combine(physicalRoot, relative.Replace('/', Path.DirectorySeparatorChar))),
             StringComparison.OrdinalIgnoreCase);

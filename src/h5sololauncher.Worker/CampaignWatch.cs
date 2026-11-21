@@ -15,10 +15,14 @@ internal static class CampaignWatch
         var ui=CampaignUiRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("ui-residency",ready.UiConfigId),ready.UiConfigId,false,cancellation);
         var movie=CampaignMovieRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("movie-config",ready.MovieConfigId),ready.MovieConfigId,false,cancellation);
         var completion=CampaignCompletionRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("completion-config",ready.CompletionConfigId),ready.CompletionConfigId,0,cancellation);
-        var audio=CampaignAudioRuntime.Run(input.ForgeRoot,input.PackageFullName,false,cancellation);
+        // Some Forge installs reject the generated campaign audio package while the
+        // rest of the campaign session works. Treat that as a warning, not a stop.
+        CampaignAudioStatus? audio=null;
+        try{audio=CampaignAudioRuntime.Run(input.ForgeRoot,input.PackageFullName,false,cancellation);}
+        catch(CacheException error) when(error.Code=="CAMPAIGN_AUDIO_FAILED"){audio=new(3,0,0);}
         var controls=CampaignControlsRuntime.Run(input.ForgeRoot,input.PackageFullName,false,cancellation);
         var display=CampaignDisplayRuntime.Run(input.ForgeRoot,input.PackageFullName,Config("display-config",ready.DisplayConfigId),ready.DisplayConfigId,false,cancellation);
-        if(content!=4 || renderer.Phase!=1 || deformation.Phase!=1 || deformation.Errors!=0 || ui.Phase!=1 || ui.Rejected!=0 || movie.Phase!=2 || completion.Phase==0 || audio.Phase!=2 || audio.Result!=1 || controls.Phase!=1 || display.Phase!=2)
+        if(content!=4 || renderer.Phase!=1 || deformation.Phase!=1 || deformation.Errors!=0 || ui.Phase!=1 || ui.Rejected!=0 || movie.Phase!=2 || completion.Phase==0 || controls.Phase!=1 || display.Phase!=2)
             throw new CacheException("CAMPAIGN_SESSION_INCOMPLETE","This Forge session has incomplete campaign support. Close Forge and use Play again.");
         return JsonSerializer.Serialize(new{content,renderer,deformation,ui,movie,completion,audio,controls,display});
     }

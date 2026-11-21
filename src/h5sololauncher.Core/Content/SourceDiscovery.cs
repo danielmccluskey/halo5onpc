@@ -10,8 +10,7 @@ public static class SourceDiscovery
     // Search at most the selected folder, Mount, or one package level below it.
     public static string ResolveRoot(string selected)
     {
-        var root = SafePaths.Canonical(selected);
-        SafePaths.NoLinks(root);
+        var root = SafePaths.ResolveFolder(SafePaths.Canonical(selected));
         if (Path.GetFileName(root).Equals("deploy", StringComparison.OrdinalIgnoreCase))
             root = Path.GetDirectoryName(root)!;
         if (File.Exists(Path.Combine(root, "AppxManifest.xml"))) return root;

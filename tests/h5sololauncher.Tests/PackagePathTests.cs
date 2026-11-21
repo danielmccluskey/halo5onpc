@@ -41,4 +41,37 @@ public sealed class PackagePathTests
             if (Directory.Exists(work)) Directory.Delete(work, recursive: true);
         }
     }
+
+    [Fact]
+    public void PackageLocalStateJunctionResolvesToRealFolder()
+    {
+        var work = Path.Combine(Path.GetTempPath(), "h5-localstate-" + Guid.NewGuid().ToString("N"));
+        var physical = Path.Combine(work, "physical-state");
+        var linked = Path.Combine(work, "LocalState");
+        Directory.CreateDirectory(physical);
+        try
+        {
+            using var mklink = Process.Start(new ProcessStartInfo("cmd.exe", $"/c mklink /J \"{linked}\" \"{physical}\"")
+            { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true })!;
+            mklink.WaitForExit();
+            Assert.Equal(0, mklink.ExitCode);
+
+            // A package LocalState that Windows redirected to another drive must be
+            // usable: resolve it instead of rejecting it as a linked path.
+            var resolved = SafePaths.ResolveFolder(linked);
+            Assert.Equal(SafePaths.Canonical(physical), resolved);
+            var bridge = SafePaths.Child(resolved, "h5sololauncher/bridge");
+            Directory.CreateDirectory(bridge);
+            Assert.True(Directory.Exists(Path.Combine(physical, "h5sololauncher", "bridge")));
+
+            var real = Path.Combine(work, "real-state");
+            Directory.CreateDirectory(real);
+            Assert.Equal(SafePaths.Canonical(real), SafePaths.ResolveFolder(real));
+        }
+        finally
+        {
+            if (Directory.Exists(linked)) Directory.Delete(linked);
+            if (Directory.Exists(work)) Directory.Delete(work, recursive: true);
+        }
+    }
 }
